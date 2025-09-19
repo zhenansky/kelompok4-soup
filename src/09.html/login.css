@@ -1,0 +1,175 @@
+/* ==========================================================
+   Konfigurasi Dasar & Reset
+   ========================================================== */
+:root {
+  --primary-color: #fcc42e;
+  --secondary-color: #ffffff;
+  --border-color: #e0e0e0;
+  --text-dark: #333333;
+  --text-light: #828282;
+  --link-color: #2f80ed;
+  --body-bg: #f8f8f8;
+  --font-family: "Poppins", sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--body-bg);
+  color: var(--text-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* ==========================================================
+   Layout Wrapper Utama (Tanpa Card)
+   ========================================================== */
+.login-wrapper {
+  width: 100%;
+  max-width: 550px; /* Lebar konten agar tidak terlalu lebar di layar besar */
+}
+
+/* ==========================================================
+   Header 
+   ========================================================== */
+.login-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3.5rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.logo img {
+  height: 35px;
+  margin-right: 10px;
+}
+
+/* ==========================================================
+   Konten Form Utama
+   ========================================================== */
+.login-main {
+  /* Properti max-width dan margin sudah ada di .login-wrapper */
+  text-align: left;
+}
+
+.login-main h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.login-main .subtitle {
+  color: var(--text-light);
+  margin-bottom: 2.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-color); /* Input tetap putih */
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: var(--font-family);
+}
+
+.form-group input::placeholder {
+  color: #bdbdbd;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.forgot-password {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.forgot-password span {
+  color: var(--link-color);
+  font-weight: 500;
+}
+
+.signup-link {
+  margin-top: 3.5rem;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.signup-link a {
+  color: var(--link-color);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ==========================================================
+   Komponen Tombol (Button)
+   ========================================================== */
+.btn {
+  text-decoration: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #513700;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
+  color: var(--text-dark);
+  margin-right: 10px;
+}
+
+.btn-secondary:hover {
+  background-color: #f1f1f1;
+}
+
+.btn-login {
+  padding-left: 3rem;
+  padding-right: 3rem;
+  font-weight: 600;
+}
