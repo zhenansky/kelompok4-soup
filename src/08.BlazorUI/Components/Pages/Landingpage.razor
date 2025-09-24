@@ -1,0 +1,226 @@
+
+@page "/"
+@using MudBlazor
+
+<!-- Hero Section -->
+    <MudContainer MaxWidth="MaxWidth.Large"
+                  Class="bg-hero d-flex flex-column align-items-center justify-content-center text-center min-h-350 px-3">
+        <MudText Typo="Typo.h3" Class="text-white font-weight-bold mb-2">
+            Be the next great chef
+        </MudText>
+        <MudText Typo="Typo.subtitle1" Class="text-white max-w-600">
+            We are able to awaken your cooking skills to become a classy chef
+            and ready to dive into the professional world
+        </MudText>
+    </MudContainer>
+
+<!-- Statistic Section -->
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-6 px-3">
+    <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Stretch" Spacing="4">
+        @foreach (var stat in stats)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Class="stat-card h-100">
+                    <MudCardContent Class="d-flex flex-column align-items-center justify-content-center text-center p-4">
+                        <MudText Typo="Typo.h4" Color="Color.Warning" Class="font-weight-bold">@stat.Number</MudText>
+                        <MudText Typo="Typo.body2">@stat.Description</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+<!-- More Professional Class Section -->
+<MudContainer MaxWidth="MaxWidth.False" Class="my-8">
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-6">
+        More Professional Classes
+    </MudText>
+    <MudGrid Spacing="4">
+        @foreach (var item in Foods)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="2" 
+                         Class="card-hover"
+                         @onclick="() => OnCardClick(item)">
+                    <MudCardMedia Image="@item.Image" Height="180" Alt="@item.Title" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@item.Category</MudText>
+                        <MudText Typo="Typo.subtitle1">@item.Title</MudText>
+                        <MudDivider Class="my-3" />
+                        <MudText Typo="Typo.body2" Color="Color.Warning">@item.Price</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+
+<!-- Benefit Section -->
+<MudPaper Class="benefit-section my-8 bg-benefit position-relative text-white">
+    <MudContainer MaxWidth="MaxWidth.False" Class="d-flex flex-column justify-content-center overlay-dark min-h-260">
+        <MudText Typo="Typo.h4" Class="mb-2 text-white">Gets your best benefit</MudText>
+        <MudText Typo="Typo.body1" Class="max-w text-white">
+            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam.
+        </MudText>
+    </MudContainer>
+</MudPaper>
+
+<!-- Food Type Section -->
+<MudContainer MaxWidth="MaxWidth.False" Class="food-container">
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="title-text">
+        More food type as you can choose
+    </MudText>
+    <!-- Foot Card -->
+    <MudGrid Spacing="3" Class="food-grid">
+        @foreach (var food in FoodTypes)
+        {
+            <MudItem xs="6" sm="3">
+                <MudPaper Class="food-card">
+                    <img src="@food.Image" alt="@food.Name" class="food-img" />
+                    <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-4" Style="font-size:24px;">
+                        @food.Name
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    public class FoodItem
+    {
+        public string Image { get; set; } = "";
+        public string Category { get; set; }  = "";
+        public string Title { get; set; }  = "";
+        public string Price { get; set; } = "";
+    }
+
+    private void OnCardClick(FoodItem item)
+    {
+        // Implement your logic here, e.g. navigate or show details
+    }
+
+    public List<FoodItem> Foods = new()
+    {
+        new FoodItem { Image="/images/image11.svg", Category="Asian", Title="Tom Yum Thailand", Price="IDR 450.000" },
+        new FoodItem { Image="/images/image12.svg", Category="Cold Drink", Title="Strawberry Float", Price="IDR 150.000" },
+        new FoodItem { Image="/images/image13.svg", Category="Cookies", Title="Chocolate Cookies", Price="IDR 200.000" },
+        new FoodItem { Image="/images/image14.svg", Category="Dessert", Title="Green Tea Cheesecake", Price="IDR 400.000" },
+        new FoodItem { Image="/images/image15.svg", Category="Asian", Title="Soto Banjar Limau Kuit", Price="IDR 150.000" },
+        new FoodItem { Image="/images/image16.svg", Category="Western", Title="Italian Spaghetti Bolognese", Price="IDR 450.000" },
+        
+    };
+    public class FoodType
+    {
+        public string Image { get; set; } = "";
+        public string Name { get; set; } = "";
+    }
+
+    public List<FoodType> FoodTypes = new()
+    {
+        new FoodType { Image="/images/image2.svg", Name="Asian" },
+        new FoodType { Image="/images/image3.svg", Name="Cold Drink" },
+        new FoodType { Image="/images/image4.svg", Name="Cookies" },
+        new FoodType { Image="/images/image5.svg", Name="Dessert" },
+        new FoodType { Image="/images/image6.svg", Name="Eastern" },
+        new FoodType { Image="/images/image7.svg", Name="Hot Drink" },
+        new FoodType { Image="/images/image8.svg", Name="Junk Food" },
+        new FoodType { Image="/images/image9.svg", Name="Western" }
+    };
+     public class StatItem
+    {
+        public string Number { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    // List data yang bisa dipakai di looping
+    private List<StatItem> stats = new()
+    {
+        new StatItem { Number = "200+", Description = "Various cuisines available in professional class" },
+        new StatItem { Number = "50+", Description = "A chef who is reliable and has his own characteristics in cooking" },
+        new StatItem { Number = "30+", Description = "Cooperate with trusted and upscale restaurants" }
+    };
+}
+
+<style>
+    .bg-hero {
+        background: url("/images/hero.svg") center/cover no-repeat;
+        width: 100%;
+    }
+
+    .min-h-350 {
+        min-height: 350px;
+    }
+    .font-weight-bold {
+        font-weight: 700;
+    }
+    .max-w-600 {
+        max-width: 600px;
+    }
+    .stat-card {
+        border: 1px solid #b4b4b4;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-radius: 24px;
+    }
+
+.card-hover {
+    cursor: pointer; /* cursor di sini */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+    .bg-benefit {
+        background: url("/images/image1.svg") center/cover no-repeat;
+    }
+    .min-h-260 {
+        min-height: 260px;
+    }
+    .max-w {
+        max-width: 1200px;
+    }
+.food-container {
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.title-text {
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #3a2f2f;
+}
+
+.food-grid {
+    justify-content: center;
+     padding: 1rem 3rem 3rem 3rem;
+}
+
+.food-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.food-card:hover {
+    transform: scale(1.05);
+}
+
+.food-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+</style>

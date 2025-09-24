@@ -1,22 +1,28 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using MudBlazor
 
 <MudLayout>
-    <!-- Navbar -->
-    <MudAppBar Elevation="0" Class="px-4" Style="background-color: #fff;">
-        <!-- Logo kiri -->
-        <img src="/images/logo.svg" alt="Company Logo" class="logo-img" />
-        <MudSpacer />
-        <!-- Tombol kanan -->
-        <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/login" Style="color: #2d2d2d; border-color: #2d2d2d;">
-                Login
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Warning" Href="/register" Style="background-color: #f4b526; color: #2d2d2d;">
-                Register
-            </MudButton>
-        </div>
+    <MudAppBar Elevation="5" Style="background-color:#ffffff;" Class="px-2">
+        <MudGrid AlignItems="Center">
+            
+            <!-- Logo di kiri -->
+            <MudItem xs="3">
+               <img src="logo.svg" alt="Logo" style="width:55px; height:55px;" />
+            </MudItem>
+            <MudSpacer />
+            <MudItem xs="3" Class="d-flex flex-row gap-4 align-center justify-end">
+                <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart" Style="color:black;" Size="Size.Small" />
+                <MudText Href="/" Class="nav-link" Typo="Typo.button" Style="color:black">My Class</MudText>
+                <MudText Href="/shop" Class="nav-link" Typo="Typo.button" Style="color:black">Invoice</MudText>
+            </MudItem>
+            <MudItem Class="d-flex flex-row gap-3 align-center">
+                <span class="mx-1" style="color:black; font-size:24px">|</span>
+                <MudIconButton Icon="@Icons.Material.Filled.Person" Style="color:#FABC1D;" />
+                <MudIconButton Icon="@Icons.Material.Filled.ExitToApp" Style="color:black" />
+            </MudItem>
+        </MudGrid>
     </MudAppBar>
+
 
     <!-- Konten Halaman -->
     <MudMainContent>
@@ -92,6 +98,11 @@
         </MudPaper>
     </footer>
 </MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
+}
 
 <style>
     .logo-img {
