@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="ResetPass.css" />
+    <title>Reset Password - Email</title>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <a href="#home" class="logo"><img src="logo.svg" alt="Logo" /></a>
+        <div class="right">
+          <a href="login.html" class="button login">Login</a>
+          <a href="register.html" class="button register">Register</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="reset-pass" class="reset-pass-section">
+        <form class="reset-pass" action="#">
+          <div class="form-title">
+            <h1>Reset Password</h1>
+            <p>Send OTP code to your email address</p>
+          </div>
+          <div class="input-email">
+            <input type="email" placeholder="Email" required />
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn cancel">Cancel</button>
+            <button type="submit" class="btn confirm">Confirm</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

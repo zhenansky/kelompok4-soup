@@ -1,23 +1,148 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<MudLayout>
+    <!-- Navbar -->
+    <MudAppBar Elevation="0" Class="px-4" Style="background-color: #fff;">
+        <!-- Logo kiri -->
+        <img src="/images/logo.svg" alt="Company Logo" class="logo-img" />
+        <MudSpacer />
+        <!-- Tombol kanan -->
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/login" Style="color: #2d2d2d; border-color: #2d2d2d;">
+                Login
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" Href="/register" Style="background-color: #f4b526; color: #2d2d2d;">
+                Register
+            </MudButton>
         </div>
+    </MudAppBar>
 
-        <article class="content px-4">
+    <!-- Konten Halaman -->
+    <MudMainContent>
+        <div class="p-4">
             @Body
-        </article>
-    </main>
-</div>
+        </div>
+    </MudMainContent>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+    <!-- Footer -->
+    <footer>
+        <MudPaper Class="footer-section" Square="true" Elevation="0">
+            <MudContainer MaxWidth="MaxWidth.Large" Class="py-6 px-3">
+                <MudGrid Spacing="3">
+                    <!-- About Us -->
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudText Typo="Typo.subtitle1" Class="footer-title mb-2">
+                            About Us
+                        </MudText>
+                        <MudText Class="footer-text">
+                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+                            laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto
+                            beatae vitae dicta sunt explicabo.
+                        </MudText>
+                    </MudItem>
+
+                    <!-- Product -->
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudText Typo="Typo.subtitle1" Class="footer-title mb-2">
+                            Product
+                        </MudText>
+                        <MudGrid>
+                            <MudItem xs="6">
+                                <MudList Dense="true" T="string">
+                                    <MudListItem>Electric</MudListItem>
+                                    <MudListItem>LCGC</MudListItem>
+                                    <MudListItem>Offroad</MudListItem>
+                                    <MudListItem>SUV</MudListItem>
+                                </MudList>
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudList Dense="true" T="string">
+                                    <MudListItem>Hatchback</MudListItem>
+                                    <MudListItem>MPV</MudListItem>
+                                    <MudListItem>Sedan</MudListItem>
+                                    <MudListItem>Truck</MudListItem>
+                                </MudList>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+
+                    <!-- Address + Contact -->
+                    <MudItem xs="12" sm="12" md="4">
+                        <MudText Typo="Typo.subtitle1" Class="footer-title mb-2">
+                            Address
+                        </MudText>
+                        <MudText Class="footer-text mb-3">
+                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.
+                        </MudText>
+
+                        <MudText Typo="Typo.subtitle1" Class="footer-title contact-title mb-2">
+                            Contact Us
+                        </MudText>
+                        <div class="social-icons d-flex gap-2 flex-wrap">
+                            <MudIconButton Icon="@Icons.Material.Filled.Phone" AriaLabel="Phone" Class="social-btn" />
+                            <MudIconButton Icon="@Icons.Custom.Brands.Instagram" AriaLabel="Instagram" Class="social-btn" />
+                            <MudIconButton Icon="@Icons.Material.Filled.PlayCircle" AriaLabel="YouTube" Class="social-btn" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Send" AriaLabel="Telegram" Class="social-btn" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Email" AriaLabel="Email" Class="social-btn" />
+                        </div>
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        </MudPaper>
+    </footer>
+</MudLayout>
+
+<style>
+    .logo-img {
+        height: 48px;
+    }
+
+    .footer-section {
+        background-color: #564545;
+        color: #ffffff;
+        padding: 40px 0;
+    }
+
+    .footer-title {
+        font-weight: 600;
+        color: #f4b526; 
+        margin-bottom: 10px;
+    }
+
+    .footer-text {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        color: #ffffff;
+    }
+
+    .footer-list {
+        list-style: disc;
+        margin-left: 20px;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    .contact-title {
+        margin-top: 20px;
+    }
+
+    .social-icons {
+        display: flex;
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .social-btn {
+        background-color: #f4b526 !important;
+        color: #2d2d2d !important;
+        border-radius: 50% !important;
+        width: 44px !important;
+        height: 44px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

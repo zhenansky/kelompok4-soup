@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/krisnafirdaus/Desktop/MyApp/src/02.Domain/MyApp.Domain.csproj": {}
+    "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\02.Domain\\MyApp.Domain.csproj": {}
   },
   "projects": {
-    "/Users/krisnafirdaus/Desktop/MyApp/src/02.Domain/MyApp.Domain.csproj": {
+    "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\02.Domain\\MyApp.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/krisnafirdaus/Desktop/MyApp/src/02.Domain/MyApp.Domain.csproj",
+        "projectUniqueName": "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\02.Domain\\MyApp.Domain.csproj",
         "projectName": "MyApp.Domain",
-        "projectPath": "/Users/krisnafirdaus/Desktop/MyApp/src/02.Domain/MyApp.Domain.csproj",
-        "packagesPath": "/Users/krisnafirdaus/.nuget/packages/",
-        "outputPath": "/Users/krisnafirdaus/Desktop/MyApp/src/02.Domain/obj/",
+        "projectPath": "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\02.Domain\\MyApp.Domain.csproj",
+        "packagesPath": "C:\\Users\\a\\.nuget\\packages\\",
+        "outputPath": "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\02.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/krisnafirdaus/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\a\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -59,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

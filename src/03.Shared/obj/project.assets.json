@@ -8,19 +8,19 @@
     "net9.0": []
   },
   "packageFolders": {
-    "/Users/krisnafirdaus/.nuget/packages/": {}
+    "C:\\Users\\a\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/krisnafirdaus/Desktop/MyApp/src/03.Shared/MyApp.Shared.csproj",
+      "projectUniqueName": "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\03.Shared\\MyApp.Shared.csproj",
       "projectName": "MyApp.Shared",
-      "projectPath": "/Users/krisnafirdaus/Desktop/MyApp/src/03.Shared/MyApp.Shared.csproj",
-      "packagesPath": "/Users/krisnafirdaus/.nuget/packages/",
-      "outputPath": "/Users/krisnafirdaus/Desktop/MyApp/src/03.Shared/obj/",
+      "projectPath": "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\03.Shared\\MyApp.Shared.csproj",
+      "packagesPath": "C:\\Users\\a\\.nuget\\packages\\",
+      "outputPath": "D:\\Taldio\\FinalProjectSoup\\kelompok4-soup\\src\\03.Shared\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/krisnafirdaus/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\a\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -65,7 +65,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
