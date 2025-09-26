@@ -3,16 +3,17 @@
 
 <MudLayout>
     <!-- Navbar -->
-    <MudAppBar Elevation="0" Class="px-4" Style="background-color: #fff;">
+    <MudAppBar Class="px-2" Style="background-color: #fff;">
         <!-- Logo kiri -->
-        <img src="/images/logo.svg" alt="Company Logo" class="logo-img" />
+        <img src="/images/logo.svg" alt="Company Logo" class="logo-img " />
         <MudSpacer />
         <!-- Tombol kanan -->
         <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/login" Style="color: #2d2d2d; border-color: #2d2d2d;">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" Href="/login" class="btn-costume">
                 Login
             </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Warning" Href="/register" Style="background-color: #f4b526; color: #2d2d2d;">
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" Href="/register" class="btn-costume"
+                Style="background-color: #FABC1D; color: #2d2d2d;">
                 Register
             </MudButton>
         </div>
@@ -20,72 +21,64 @@
 
     <!-- Konten Halaman -->
     <MudMainContent>
-        <div class="p-4">
+        <div>
             @Body
         </div>
     </MudMainContent>
 
     <!-- Footer -->
     <footer>
-        <MudPaper Class="footer-section" Square="true" Elevation="0">
-            <MudContainer MaxWidth="MaxWidth.Large" Class="py-6 px-3">
-                <MudGrid Spacing="3">
-                    <!-- About Us -->
+        <!-- Product -->
+        <MudPaper Elevation="0" Class="footer-section">
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge">
+                <MudGrid Gutter="3">
+
+                    <!-- About -->
                     <MudItem xs="12" sm="6" md="4">
-                        <MudText Typo="Typo.subtitle1" Class="footer-title mb-2">
+                        <MudText Typo="Typo.h6" Class="footer-title mb-2">
                             About Us
                         </MudText>
                         <MudText Class="footer-text">
                             Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
-                            laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto
+                            laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
+                            architecto
                             beatae vitae dicta sunt explicabo.
                         </MudText>
                     </MudItem>
 
-                    <!-- Product -->
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudText Typo="Typo.subtitle1" Class="footer-title mb-2">
-                            Product
-                        </MudText>
-                        <MudGrid>
-                            <MudItem xs="6">
-                                <MudList Dense="true" T="string">
-                                    <MudListItem>Electric</MudListItem>
-                                    <MudListItem>LCGC</MudListItem>
-                                    <MudListItem>Offroad</MudListItem>
-                                    <MudListItem>SUV</MudListItem>
-                                </MudList>
-                            </MudItem>
-                            <MudItem xs="6">
-                                <MudList Dense="true" T="string">
-                                    <MudListItem>Hatchback</MudListItem>
-                                    <MudListItem>MPV</MudListItem>
-                                    <MudListItem>Sedan</MudListItem>
-                                    <MudListItem>Truck</MudListItem>
-                                </MudList>
-                            </MudItem>
-                        </MudGrid>
+                    <!-- Produk -->
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudText Typo="Typo.h6" Class="footer-title mb-2">Produk</MudText>
+                        <ul class="produk-list">
+                            @foreach (string produk in ProdukList)
+                            {
+                                <li>@produk</li>
+                            }
+                        </ul>
                     </MudItem>
 
-                    <!-- Address + Contact -->
-                    <MudItem xs="12" sm="12" md="4">
-                        <MudText Typo="Typo.subtitle1" Class="footer-title mb-2">
-                            Address
-                        </MudText>
-                        <MudText Class="footer-text mb-3">
+                    <!-- Address & Contact -->
+                    <MudItem xs="12" sm="12" md="5">
+                        <MudText Typo="Typo.h6" Class="footer-title mb-2">Address</MudText>
+                        <MudText Typo="Typo.body1" Class="mb-2">
                             Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.
                         </MudText>
 
-                        <MudText Typo="Typo.subtitle1" Class="footer-title contact-title mb-2">
-                            Contact Us
-                        </MudText>
-                        <div class="social-icons d-flex gap-2 flex-wrap">
-                            <MudIconButton Icon="@Icons.Material.Filled.Phone" AriaLabel="Phone" Class="social-btn" />
-                            <MudIconButton Icon="@Icons.Custom.Brands.Instagram" AriaLabel="Instagram" Class="social-btn" />
-                            <MudIconButton Icon="@Icons.Material.Filled.PlayCircle" AriaLabel="YouTube" Class="social-btn" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Send" AriaLabel="Telegram" Class="social-btn" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Email" AriaLabel="Email" Class="social-btn" />
-                        </div>
+                        <MudText Typo="Typo.h6" Class="footer-title mb-2">Contact Us</MudText>
+                        <MudStack Spacing="2" Row="true">
+                            <div class="social-icons">
+                                <MudIconButton Icon="@Icons.Material.Filled.Phone" AriaLabel="Phone"
+                                    Class="social-btn" />
+                                <MudIconButton Icon="@Icons.Custom.Brands.Instagram" AriaLabel="Instagram"
+                                    Class="social-btn" />
+                                <MudIconButton Icon="@Icons.Material.Filled.PlayCircle" AriaLabel="YouTube"
+                                    Class="social-btn" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Send" AriaLabel="Telegram"
+                                    Class="social-btn" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Email" AriaLabel="Email"
+                                    Class="social-btn" />
+                            </div>
+                        </MudStack>
                     </MudItem>
                 </MudGrid>
             </MudContainer>
@@ -93,36 +86,34 @@
     </footer>
 </MudLayout>
 
+@code {
+    private List<string> ProdukList = new List<string>()
+{
+"Electric","LCOC","Offroad","SUV","Heartback","MPV","Sedan","Truck"
+};
+}
+
 <style>
-    .logo-img {
-        height: 48px;
+    .btn-costume {
+        width: 175px;
+        height: 40px;
     }
 
-    .footer-section {
-        background-color: #564545;
-        color: #ffffff;
-        padding: 40px 0;
+    .logo-img {
+        width: 55px;
+        height: 55px;
     }
 
     .footer-title {
-        font-weight: 600;
-        color: #f4b526; 
-        margin-bottom: 10px;
-    }
-
-    .footer-text {
-        font-size: 14px;
-        line-height: 1.6;
-        margin-bottom: 20px;
-        color: #ffffff;
+        color: #f4b526;
     }
 
     .footer-list {
         list-style: disc;
-        margin-left: 20px;
+        margin-left: 0px;
         color: #ffffff;
         font-size: 14px;
-        line-height: 1.8;
+        line-height: 0;
     }
 
     .contact-title {
@@ -144,5 +135,31 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .footer-section {
+        margin-top: 2.5rem;
+        padding: 1.5rem;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+        background-color: #5B4947;
+        color: #E0E0E0;
+    }
+
+    .produk-list {
+        list-style-type: disc;
+        padding-left: 20px;
+        margin: 0;
+        columns: 2;
+        -webkit-columns: 2;
+        -moz-columns: 2;
+        column-gap: 1.5rem;
+    }
+
+    .footer-text {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        color: #ffffff;
     }
 </style>
