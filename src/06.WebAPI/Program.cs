@@ -13,9 +13,29 @@ using MyApp.WebAPI.Configuration;
 using System.Text;
 using MyApp.WebAPI.Services.Implementations;
 using MyApp.WebAPI.Extensions;
+using Serilog;
+using Serilog.Events;
+using MyApp.WebAPI.HealthChecks;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// add logger
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.AspNetCore.Diagnostics.HealthChecks", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithMachineName()
+    .Enrich.WithProcessId()
+    .Enrich.WithThreadId()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.Seq("http://localhost:5341")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // ===============================================
 // 1️⃣ Connection String & Database Configuration
@@ -136,10 +156,24 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// add health check
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("Database", tags: new[] { "db" })
+    .AddCheck<MemoryHealthCheck>("Memory", tags: new[] { "system" });
+
+// builder.Services.AddHealthChecksUI(setup =>
+// {
+//   setup.AddHealthCheckEndpoint("API Health", "/health");
+// })
+// .AddInMemoryStorage();
+
 // ===============================================
 // 5️⃣ Build App
 // ===============================================
 var app = builder.Build();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // ===============================================
 // 6️⃣ Automatic Migration & Seeding
@@ -170,9 +204,34 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+// app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+// {
+//   ResponseWriter = HealthCheckResponseWriter.WriteResponse
+// });
+
+// app.MapHealthChecksUI(options =>
+// {
+//   options.UIPath = "/health-ui";
+// });
+
 app.MapControllers();
 
 await SeedData.InitializeAsync(app.Services);
 
-app.Run();
+Log.Information("Application {AppName} started in {Environment} mode",
+    app.Environment.ApplicationName, app.Environment.EnvironmentName);
+
+try
+{
+  Log.Information("Starting web host");
+  app.Run();
+}
+catch (Exception ex)
+{
+  Log.Fatal(ex, "Application startup failed");
+}
+finally
+{
+  Log.CloseAndFlush();
+}
