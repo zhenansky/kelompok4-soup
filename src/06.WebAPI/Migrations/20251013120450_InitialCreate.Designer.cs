@@ -12,8 +12,8 @@ using MyApp.WebAPI.Data;
 namespace MyApp.WebAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251011084648_initial")]
-    partial class initial
+    [Migration("20251013120450_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -211,9 +211,9 @@ namespace MyApp.WebAPI.Migrations
                     b.Property<int>("TotalCourse")
                         .HasColumnType("int");
 
-                    b.Property<double>("TotalPrice")
+                    b.Property<decimal>("TotalPrice")
                         .HasPrecision(18, 2)
-                        .HasColumnType("float(18)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -286,9 +286,9 @@ namespace MyApp.WebAPI.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<double>("Price")
+                    b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
-                        .HasColumnType("float(18)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");

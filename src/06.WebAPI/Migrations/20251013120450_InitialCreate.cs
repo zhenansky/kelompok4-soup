@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MyApp.WebAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -221,7 +221,7 @@ namespace MyApp.WebAPI.Migrations
                     NoInvoice = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TotalCourse = table.Column<int>(type: "int", nullable: false),
-                    TotalPrice = table.Column<double>(type: "float(18)", precision: 18, scale: 2, nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     UserIdRef = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -245,7 +245,7 @@ namespace MyApp.WebAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     Image = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    Price = table.Column<double>(type: "float(18)", precision: 18, scale: 2, nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),

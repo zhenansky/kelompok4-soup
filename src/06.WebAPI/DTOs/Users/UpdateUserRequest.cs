@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using MyApp.WebAPI.Models;
 
 namespace MyApp.WebAPI.DTO.Users
 {
@@ -11,6 +12,6 @@ namespace MyApp.WebAPI.DTO.Users
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        public bool IsActive { get; set; } = true;
+        public UserStatus Status { get; set; } = UserStatus.Active;
     }
 }

@@ -130,14 +130,28 @@ ImageUrl="images/image16.svg"},
 
   private async Task OpenPayment()
   {
-    if (_totalPrice <= 0) { Snackbar.Add("Tidak ada item yang dipilih untuk dibayar.", Severity.Info); return; }
-    var
-    options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true, }; // Use ShowAsync
-    (recommended)and consider a null Data as cancellation var dialogRef = await DialogService.ShowAsync<PaymentMethod>
-    ("Select Payment Method", options);
+    if (_totalPrice <= 0)
+    {
+      Snackbar.Add("Tidak ada item yang dipilih untuk dibayar.", Severity.Info);
+      return;
+    }
+
+    var options = new DialogOptions
+    {
+      CloseOnEscapeKey = true,
+      MaxWidth = MaxWidth.Small,
+      FullWidth = true
+    };
+
+    // Tampilkan dialog PaymentMethod (komponen dialog kamu)
+    var dialogRef = await DialogService.ShowAsync<PaymentMethod>(
+    "Select Payment Method",
+    options
+    );
+
     var result = await dialogRef.Result;
 
-    if (result?.Data != null)
+    if (result != null && result.Data != null)
     {
       var method = result.Data.ToString() ?? "(tidak diketahui)";
       Snackbar.Add($"Membayar sebesar IDR {_totalPrice:N0} menggunakan {method}.", Severity.Success);
@@ -147,6 +161,7 @@ ImageUrl="images/image16.svg"},
       Snackbar.Add("Pembayaran dibatalkan.", Severity.Info);
     }
   }
+
 
   public class CartItem
   {

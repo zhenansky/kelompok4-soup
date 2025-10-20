@@ -1,116 +1,89 @@
 @page "/admin-user"
 @layout AdminLayout
 @using MyApp.BlazorUI.Components.Shared.Admin
+@using MyApp.BlazorUI.Components.Models
+@using MyApp.BlazorUI.Services
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject UserService UserService
 
+<PageTitle>User Management</PageTitle>
 
-<PageTitle>Dashboard</PageTitle>
+<MudPaper Elevation="1" Style="padding: 1rem; height: calc(100vh - 8rem); display:flex; flex-direction:column;">
+  <MudText Typo="Typo.h4" Class="mb-4">User Management</MudText>
 
-<MudPaper Elevation="1" Style="padding: 1rem; height: calc(100vh - 8rem);">
-  <MudText Typo="Typo.h4" Style="padding: 0 0 1rem 0;">User Management</MudText>
-
-  <MudButton OnClick="OpenDialogAddUserAsync" Variant="Variant.Filled" Class="rounded-lg btn-add">
+  <MudButton OnClick="OpenAddUserDialog" Variant="Variant.Filled" Class="rounded-lg btn-add mb-3" Style="width:150px;">
     Add User
   </MudButton>
 
-  <MudTable Items="@User" Height="26rem" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-    LoadingProgressColor="Color.Info" Class="mt-5">
-    <HeaderContent>
-      <MudTh Class="t">Email</MudTh>
-      <MudTh Class="t">Name</MudTh>
-      <MudTh Class="t">Role</MudTh>
-      <MudTh Class="t">Status</MudTh>
-      <MudTh Class="t">Action</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-      <MudTd Class="t" DataLabel="Email">@context.Email</MudTd>
-      <MudTd Class="t" DataLabel="Name">@context.Name</MudTd>
-      <MudTd Class="t" DataLabel="Role">@context.Role</MudTd>
-      <MudTd Class="t" DataLabel="Status">
-        @if (context.Status == UserStatus.Active)
-        {
-          <MudChip T="UserStatus" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
-        }
-        else
-        {
-          <MudChip T="UserStatus" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
-        }
-      </MudTd>
-      <MudTd Class="t" DataLabel="Action">
-        <MudButton OnClick="@(() => OpenDialogEditUserAsync(context))" Variant="Variant.Filled"
-          Class="rounded-lg btn-edit">
-          Edit
-        </MudButton>
-      </MudTd>
-    </RowTemplate>
-    <PagerContent>
-      <MudTablePager />
-    </PagerContent>
-  </MudTable>
-
+  <div style="flex:1; overflow-y:auto;">
+    <MudTable Items="@Users" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
+      LoadingProgressColor="Color.Info" Class="mt-2" Elevation="0">
+      <HeaderContent>
+        <MudTh Class="t">Email</MudTh>
+        <MudTh Class="t">Name</MudTh>
+        <MudTh Class="t">Role</MudTh>
+        <MudTh Class="t">Status</MudTh>
+        <MudTh Class="t">Action</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd Class="t">@context.Email</MudTd>
+        <MudTd Class="t">@context.Name</MudTd>
+        <MudTd Class="t">@context.Role</MudTd>
+        <MudTd Class="t">
+          @if (context.Status == UserStatus.Active)
+          {
+            <MudChip T="UserStatus" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+          }
+          else
+          {
+            <MudChip T="UserStatus" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
+          }
+        </MudTd>
+        <MudTd Class="t">
+          <MudButton OnClick="@(() => OpenEditUserDialog(context))" Variant="Variant.Filled"
+            Class="rounded-lg btn-edit me-2">Edit</MudButton>
+          <MudButton OnClick="@(() => DeleteUserAsync(context))" Variant="Variant.Filled" Class="rounded-lg btn-delete">
+            Delete</MudButton>
+        </MudTd>
+      </RowTemplate>
+      <PagerContent>
+        <MudTablePager />
+      </PagerContent>
+    </MudTable>
+  </div>
 </MudPaper>
+
 
 @code {
   private bool _loading;
-  private IEnumerable<UserModel> User = new List<UserModel>
-{
-new UserModel
-{
-Email = "admin@dlanguage.com",
-Name = "Super Admin",
-Role = UserRole.Admin,
-Status = UserStatus.Active
-},
-new UserModel
-{
-Email = "nurimamiskandar@gmail.com",
-Name = "Nur Imam Iskandar",
-Role = UserRole.User,
-Status = UserStatus.Active
-},
-new UserModel
-{
-Email = "imam.stmik15@gmail.com",
-Name = "Iskandar",
-Role = UserRole.User,
-Status = UserStatus.Active
-},
-new UserModel
-{
-Email = "iniemaildummysaya@gmail.com",
-Name = "Dummy User",
-Role = UserRole.User,
-Status = UserStatus.Inactive
-},
-new UserModel
-{
-Email = "yusrisahrul.works@gmail.com",
-Name = "yusri sahrul",
-Role = UserRole.User,
-Status = UserStatus.Active
-},
-new UserModel
-{
-Email = "yusribootcamp@gmail.com",
-Name = "yusri sahrul test",
-Role = UserRole.Admin,
-Status = UserStatus.Active
-}
-};
+  private List<UserModel> Users = new();
 
-  private Task OpenDialogAddUserAsync()
+  protected override async Task OnInitializedAsync()
   {
-    var options = new DialogOptions
-    {
-      CloseOnEscapeKey = true,
-      MaxWidth = MaxWidth.Medium,
-      FullWidth = true
-    };
-
-    return DialogService.ShowAsync<AddUserDialog>("Add User", options);
+    await LoadUsersAsync();
   }
 
-  private Task OpenDialogEditUserAsync(UserModel user)
+  private async Task LoadUsersAsync()
+  {
+    _loading = true;
+    try
+    {
+      Users = await UserService.GetUsersAsync();
+      if (Users == null || !Users.Any())
+        Snackbar.Add("Tidak ada data user ditemukan.", Severity.Info);
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Gagal memuat data user: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      _loading = false;
+    }
+  }
+
+  private async Task OpenAddUserDialog()
   {
     var options = new DialogOptions
     {
@@ -119,12 +92,71 @@ Status = UserStatus.Active
       FullWidth = true
     };
 
-    var parameters = new DialogParameters
-{
-{ "User", user }
-};
+    // Gunakan Show, bukan ShowAsync
+    var dialogReference = DialogService.Show<AddUserDialog>("Add User", options);
 
-    return DialogService.ShowAsync<EditUserDialog>("Edit User", parameters, options);
+    // Tunggu sampai dialog ditutup
+    var result = await dialogReference.Result;
+
+    // Jika Submit berhasil, result.Data = true
+    if (result?.Data is true)
+    {
+      Snackbar.Add("User berhasil ditambahkan!", Severity.Success);
+      await LoadUsersAsync(); // refresh table
+    }
+  }
+
+
+  private async Task OpenEditUserDialog(UserModel user)
+  {
+    var options = new DialogOptions
+    {
+      CloseOnEscapeKey = true,
+      MaxWidth = MaxWidth.Medium,
+      FullWidth = true
+    };
+
+    var parameters = new DialogParameters { { "User", user } };
+    var dialogReference = DialogService.Show<EditUserDialog>("Edit User", parameters, options);
+    var result = await dialogReference.Result; // tunggu dialog selesai
+
+    if (result?.Data is true) // jika submit berhasil
+    {
+      // Update user secara lokal agar UI langsung berubah
+      var editedUser = Users.FirstOrDefault(u => u.Id == user.Id);
+      if (editedUser != null)
+      {
+        editedUser.Name = user.Name;
+        editedUser.Email = user.Email;
+        editedUser.Role = user.Role;
+        editedUser.Status = user.Status;
+      }
+
+      Snackbar.Add("User berhasil diupdate!", Severity.Success);
+      StateHasChanged(); // refresh UI
+    }
+  }
+
+  private async Task DeleteUserAsync(UserModel user)
+  {
+    bool confirmed = await DialogService.ShowMessageBox(
+    "Confirm Delete",
+    $"Apakah kamu yakin ingin menghapus user {user.Name}?",
+    yesText: "Yes", noText: "Cancel") ?? false;
+
+    if (!confirmed)
+      return;
+
+    var success = await UserService.DeleteUserAsync(user.Id);
+    if (success)
+    {
+      Snackbar.Add("User berhasil dihapus!", Severity.Success);
+      await LoadUsersAsync(); // refresh table
+    }
+    else
+    {
+      Snackbar.Add("Gagal menghapus user!", Severity.Error);
+    }
   }
 }
 
@@ -136,7 +168,7 @@ Status = UserStatus.Active
   }
 
   .btn-add:hover {
-    background-color: green;
+    background-color: #0f7a0f;
   }
 
   .btn-edit {
@@ -146,7 +178,17 @@ Status = UserStatus.Active
   }
 
   .btn-edit:hover {
-    background-color: #fabc1d;
+    background-color: #f1b60d;
+  }
+
+  .btn-delete {
+    background-color: red;
+    text-transform: none;
+    color: white;
+  }
+
+  .btn-delete:hover {
+    background-color: darkred;
   }
 
   .mud-table-head th {
