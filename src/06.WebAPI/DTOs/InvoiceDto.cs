@@ -7,6 +7,8 @@ namespace MyApp.WebAPI.DTOs
     public DateTime Date { get; set; }
     public int TotalCourse { get; set; }
     public decimal TotalPrice { get; set; }
+
+    public string Email { get; set; } = string.Empty;
   }
 
   public class DetailInvoiceDTO

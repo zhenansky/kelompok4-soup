@@ -1,19 +1,25 @@
 @page "/admin-payment"
+@using MyApp.BlazorUI.Components.Models
+@using MyApp.BlazorUI.Services
 @using MyApp.BlazorUI.Components.Shared.Admin
 @layout AdminLayout
+
 @inject IDialogService DialogService
+@inject PaymentService PaymentService
+@inject ISnackbar Snackbar
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>Payment Method</PageTitle>
 
-<MudPaper Elevation="1" Style="padding: 1rem; max-height: calc(100vh - 8rem);">
-  <MudText Typo="Typo.h4" Style="padding: 0 0 1rem 0;">Payment Method</MudText>
+<MudPaper Elevation="2" Class="payment-container">
+  <div class="header-section">
+    <MudText Typo="Typo.h5" Class="title">Payment Method</MudText>
+    <MudButton OnClick="OpenDialogAddPaymentAsync" Variant="Variant.Filled" Class="btn-add">
+      Add Payment Method
+    </MudButton>
+  </div>
 
-  <MudButton OnClick="OpenDialogAddPaymentAsync" Variant="Variant.Filled" Class="rounded-lg btn-add">
-    Add Payment Method
-  </MudButton>
-
-  <MudTable Items="@Payment" Height="26rem" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm"
-    Loading="@_loading" LoadingProgressColor="Color.Info" Class="mt-5">
+  <MudTable Items="@Payments" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
+    LoadingProgressColor="Color.Info" Class="payment-table">
     <HeaderContent>
       <MudTh Class="t">Id</MudTh>
       <MudTh Class="t">Name</MudTh>
@@ -21,144 +27,184 @@
       <MudTh Class="t">Status</MudTh>
       <MudTh Class="t">Action</MudTh>
     </HeaderContent>
+
     <RowTemplate>
-      <MudTd Class="t" DataLabel="Id">@context.Id</MudTd>
-      <MudTd Class="t" DataLabel="Name">@context.Name</MudTd>
-      <MudTd Class="t" DataLabel="Logo">
-        <MudPaper Elevation="0" Class="d-flex justify-center align-center gap-3" Style="background-color: transparent;">
-          <MudImage Src="@context.Logo" Width="30" Height="30" />
-          <MudText>@context.Name</MudText>
-        </MudPaper>
+      <MudTd Class="t">@context.Id</MudTd>
+      <MudTd Class="t">@context.Name</MudTd>
+      <MudTd Class="t">
+        <MudImage Src="@context.Logo" Width="40" Height="40" Class="rounded" />
       </MudTd>
-      <MudTd Class="t" DataLabel="Status">
+      <MudTd Class="t">
         @if (context.Status == PaymentStatus.Active)
         {
-          <MudChip T="PaymentStatus" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
+          <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">Active</MudChip>
         }
         else
         {
-          <MudChip T="PaymentStatus" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
+          <MudChip T="string" Color="Color.Error" Variant="Variant.Filled">Inactive</MudChip>
         }
       </MudTd>
-      <MudTd Class="t" DataLabel="Action">
-        <MudButton OnClick="@(() => OpenDialogEditPaymentAsync(context))" Variant="Variant.Filled"
-          Class="rounded-lg btn-edit">
+      <MudTd Class="t">
+        <MudButton OnClick="@(() => OpenDialogEditPaymentAsync(context))" Variant="Variant.Filled" Class="btn-edit">
           Edit
+        </MudButton>
+        <MudButton OnClick="@(() => DeletePaymentAsync(context))" Variant="Variant.Filled" Class="btn-delete">
+          Delete
         </MudButton>
       </MudTd>
     </RowTemplate>
+
     <PagerContent>
       <MudTablePager />
     </PagerContent>
   </MudTable>
-
 </MudPaper>
 
 @code {
   private bool _loading;
+  private List<PaymentModel> Payments = new();
 
-  private IEnumerable<PaymentModel> Payment = new List<PaymentModel>
-{
-new PaymentModel
-{
-Id = "1",
-Name = "Dana",
-Logo = "/images/payment/Logo_DANA.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "2",
-Name = "Gopay",
-Logo = "/images/payment/Logo_GOPAY.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "3",
-Name = "BCA",
-Logo = "/images/payment/Logo_BCA.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "4",
-Name = "BRI",
-Logo = "/images/payment/Logo_BRI.svg",
-Status = PaymentStatus.Inactive
-},
-new PaymentModel
-{
-Id = "5",
-Name = "Mandiri",
-Logo = "/images/payment/Logo_MANDIRI.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "6",
-Name = "OVO",
-Logo = "/images/payment/Logo_OVO.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "7",
-Name = "BNI",
-Logo = "/images/payment/Logo_BNI.svg",
-Status = PaymentStatus.Active
-}
-};
-
-  private Task OpenDialogAddPaymentAsync()
+  protected override async Task OnInitializedAsync()
   {
-    var options = new DialogOptions
-    {
-      CloseOnEscapeKey = true,
-      MaxWidth = MaxWidth.Medium,
-      FullWidth = true
-    };
-    return DialogService.ShowAsync<AddPaymentDialog>("Add Payment", options);
+    await LoadPaymentsAsync();
   }
 
-  private Task OpenDialogEditPaymentAsync(PaymentModel payment)
+  private async Task LoadPaymentsAsync()
   {
-    var options = new DialogOptions
+    _loading = true;
+    try
     {
-      CloseOnEscapeKey = true,
-      MaxWidth = MaxWidth.Medium,
-      FullWidth = true
-    };
-
-    var parameters = new DialogParameters
-{
-{ "Payment", payment }
-};
-
-    return DialogService.ShowAsync<EditPaymentDialog>("Edit Payment", parameters, options);
+      Payments = await PaymentService.GetPaymentsAsync();
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"❌ Failed to load payments: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      _loading = false;
+      StateHasChanged();
+    }
   }
 
+  private async Task OpenDialogAddPaymentAsync()
+  {
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+    var dialog = await DialogService.ShowAsync<AddPaymentDialog>("Add Payment", options: options);
+    var result = await dialog.Result;
+
+    if (result?.Data is true)
+    {
+      Snackbar.Add("✅ Payment method added successfully.", Severity.Success);
+      await LoadPaymentsAsync();
+    }
+    else
+    {
+      Snackbar.Add("ℹ️ Payment creation canceled.", Severity.Info);
+    }
+  }
+
+  private async Task OpenDialogEditPaymentAsync(PaymentModel payment)
+  {
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+    var parameters = new DialogParameters { { "Payment", payment } };
+    var dialog = await DialogService.ShowAsync<EditPaymentDialog>("Edit Payment", parameters: parameters, options: options);
+    var result = await dialog.Result;
+
+    if (result?.Data is true)
+    {
+      Snackbar.Add($"✅ Payment '{payment.Name}' updated successfully.", Severity.Success);
+      await LoadPaymentsAsync();
+    }
+    else
+    {
+      Snackbar.Add("ℹ️ Edit canceled.", Severity.Info);
+    }
+  }
+
+  private async Task DeletePaymentAsync(PaymentModel payment)
+  {
+    bool confirmed = await DialogService.ShowMessageBox(
+    "Confirm Delete",
+    $"Apakah kamu yakin ingin menghapus {payment.Name}?",
+    yesText: "Yes", noText: "Cancel") ?? false;
+
+    if (!confirmed)
+    {
+      Snackbar.Add("ℹ️ Delete canceled.", Severity.Info);
+      return;
+    }
+
+    try
+    {
+      var success = await PaymentService.DeletePaymentAsync(payment.Id);
+      if (success)
+      {
+        Snackbar.Add($"✅ Payment '{payment.Name}' deleted successfully.", Severity.Success);
+        await LoadPaymentsAsync();
+      }
+      else
+      {
+        Snackbar.Add($"⚠️ Failed to delete '{payment.Name}'.", Severity.Warning);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"❌ Error deleting payment: {ex.Message}", Severity.Error);
+    }
+  }
 }
 
 <style>
-  .btn-add {
-    background-color: green;
-    text-transform: none;
-    color: white;
+  .payment-container {
+    padding: 1.5rem;
+    margin: 0 auto;
+    max-width: 1000px;
+    overflow: hidden;
+    background-color: #fff;
   }
 
-  .btn-add:hover {
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .payment-table {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .btn-add {
     background-color: green;
+    color: white;
+    text-transform: none;
   }
 
   .btn-edit {
     background-color: #fabc1d;
-    text-transform: none;
     color: white;
+    text-transform: none;
+    margin-right: 0.3rem;
+  }
+
+  .btn-delete {
+    background-color: red;
+    color: white;
+    text-transform: none;
+  }
+
+  .btn-add:hover {
+    background-color: darkgreen;
   }
 
   .btn-edit:hover {
-    background-color: #fabc1d;
+    background-color: #e6a500;
+  }
+
+  .btn-delete:hover {
+    background-color: darkred;
   }
 
   .mud-table-head th {
@@ -167,5 +213,6 @@ Status = PaymentStatus.Active
 
   .t {
     text-align: center;
+    vertical-align: middle !important;
   }
 </style>

@@ -1,3 +1,8 @@
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Models
+@inject InvoiceService InvoiceService
+@inject ISnackbar Snackbar
+
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Detail Invoice</MudText>
@@ -8,82 +13,100 @@
           <MudText>Date: </MudText>
         </MudItem>
         <MudItem>
-          <MudText>SOU00003</MudText>
-          <MudText>12 June 2022</MudText>
+          <MudText>@Invoice?.NoInvoice</MudText>
+          <MudText>@Invoice?.Date.ToString("dddd, dd MMMM yyyy")</MudText>
         </MudItem>
       </MudItem>
+
       <MudItem xs="12" sm="6" Class="mt-5 d-flex justify-end align-end gap-8">
         <MudText Typo="Typo.body1" Style="font-weight: 700;">Total Price</MudText>
-        <MudText Typo="Typo.body1" Style="font-weight: 700;">IDR 450.000</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight: 700;">
+          @("IDR " + Invoice?.TotalPrice.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
+        </MudText>
       </MudItem>
     </MudGrid>
   </TitleContent>
+
   <DialogContent>
-    <MudTable Items="@invoice" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-      LoadingProgressColor="Color.Info" Class="mt-3">
+    <MudTable Items="@InvoiceItems" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading">
       <HeaderContent>
-        <MudTh Class="thead">No</MudTh>
-        <MudTh Class="thead">Course Name</MudTh>
-        <MudTh Class="thead">Type</MudTh>
-        <MudTh Class="thead">Schedule</MudTh>
-        <MudTh Class="thead">Price</MudTh>
+        <MudTh>No</MudTh>
+        <MudTh>Course Name</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh>Schedule</MudTh>
+        <MudTh>Price</MudTh>
       </HeaderContent>
       <RowTemplate>
-        <MudTd DataLabel="No">@context.No</MudTd>
-        <MudTd DataLabel="Course Name">@context.CourseName</MudTd>
-        <MudTd DataLabel="Type">@context.Type</MudTd>
-        <MudTd DataLabel="Schedule">@context.schedule.ToString("dddd, dd MMMM yyyy")</MudTd>
-        <MudTd DataLabel="Price">
-          @("IDR " + context.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
-        </MudTd>
+        <MudTd>@context.No</MudTd>
+        <MudTd>@context.CourseName</MudTd>
+        <MudTd>@context.Type</MudTd>
+        <MudTd>@context.Schedule.ToString("dddd, dd MMMM yyyy")</MudTd>
+        <MudTd>@("IDR " + context.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID")))</MudTd>
       </RowTemplate>
-      <PagerContent>
-        <MudTablePager />
-      </PagerContent>
     </MudTable>
   </DialogContent>
+
   <DialogActions>
     <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter]
-  private IMudDialogInstance MudDialog { get; set; }
+  [Parameter]
+  public string Token { get; set; } = string.Empty;
+  [Parameter] public int InvoiceId { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+  private bool _loading;
+  private InvoiceDetailModel? Invoice;
+  private List<CourseItem> InvoiceItems = new();
+
+  protected override async Task OnInitializedAsync() => await LoadInvoiceAsync();
+
+  private async Task LoadInvoiceAsync()
+  {
+    _loading = true;
+
+    try
+    {
+      // Token sementara
+      var token =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJhZG1pbkBlbWFpbC5jb20iLCJuYW1lIjoiQWRtaW4iLCJzdGF0dXMiOiJBY3RpdmUiLCJqdGkiOiI4NmM2ODBmMC1lY2E1LTQzMmMtYjJkNi1iYmY2N2Q5ZTMxOWMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc2MDk0NjIzNCwiaXNzIjoiTXlBcHAiLCJhdWQiOiJNeUFwcFVzZXJzIn0.xkIk73GPvcobuxSxGtH1ua4zScbEQjLTjr821SHS-kY";
+
+      Invoice = await InvoiceService.GetInvoiceDetailAsync(InvoiceId, token);
+
+      // Jika backend belum ada data Courses → buat dummy list kosong supaya tidak error
+      if (Invoice?.Courses == null)
+        Invoice!.Courses = new List<InvoiceCourseModel>();
+
+      if (Invoice.Courses.Any())
+      {
+        InvoiceItems = Invoice.Courses.Select((c, i) => new CourseItem
+        {
+          No = i + 1,
+          CourseName = c.CourseName,
+          Type = c.Type,
+          Schedule = c.Schedule,
+          Price = c.Price
+        }).ToList();
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading invoice: {ex.Message}", Severity.Error);
+    }
+
+    _loading = false;
+  }
 
   private void Submit() => MudDialog.Close(DialogResult.Ok(true));
 
-  private void Cancel() => MudDialog.Cancel();
-
-  private bool _loading;
-  private IEnumerable<InvoiceModel> invoice = new List<InvoiceModel>
-{
-new InvoiceModel
-{
-No = 1,
-CourseName = "Tom Yum Thailand",
-Type = "Asian",
-schedule = new DateTime(2023, 5, 20),
-Price = 450000m
-},
-};
-
-  public class InvoiceModel
+  private class CourseItem
   {
     public int No { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public DateTime schedule { get; set; }
+    public DateTime Schedule { get; set; }
     public decimal Price { get; set; }
   }
 }
-
-<style>
-  .mud-table-head th {
-    background-color: #dbffdd !important;
-  }
-
-  .thead {
-    text-align: center;
-  }
-</style>

@@ -10,7 +10,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Razor Components and MudBlazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
 builder.Services.AddMudServices();
+
+// ✅ HttpClient didefinisikan sebelum build()
+builder.Services.AddScoped(sp => new HttpClient
+{
+  BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!)
+});
+
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<InvoiceService>();
+
 
 // Blazored LocalStorage (for token storage)
 builder.Services.AddBlazoredLocalStorage();
@@ -65,7 +78,6 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

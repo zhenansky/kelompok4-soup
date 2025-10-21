@@ -11,7 +11,7 @@
       {
         <MudItem>
           <MudPaper Elevation="0"
-            Class=@($"d-flex justify-start gap-6 {(SelectedMethod == method.Id ? "selected-method" : "")}")>
+                    Class=@($"d-flex justify-start gap-6 {(SelectedMethod == method.Id ? "selected-method" : "")}")>
             <MudButton class="d-flex justify-start" Style="width: 100%;" OnClick="@(() => SetSelectedMethod(method.Id))">
               <MudImage Src="@method.Logo" Class="mr-4" Width="40" Height="40" />
               <MudText Style="font-weight: 500; font-size: 18px;">@method.Name</MudText>
@@ -26,97 +26,47 @@
     <MudButton Variant="Variant.Outlined" OnClick="Cancel" Class="button button-outline rounded-lg">
       Cancel
     </MudButton>
-    <MudButton Variant="Variant.Filled" OnClick="ConfirmPayNow" DropShadow="false"
-      Disabled="@(string.IsNullOrEmpty(SelectedMethod))" Class="button button-filled rounded-lg">
+    <MudButton Variant="Variant.Filled"
+               OnClick="ConfirmPayNow"
+               DropShadow="false"
+               Disabled="@(SelectedMethod is null)"
+               Class="button button-filled rounded-lg">
       Pay Now
     </MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter] IMudDialogInstance MudDialogObj { get; set; }
-  private string? SelectedMethod { get; set; }
+  [CascadingParameter] IMudDialogInstance MudDialogObj { get; set; } = default!;
+
+  private int? SelectedMethod { get; set; }
 
   private IEnumerable<PaymentModel> PaymentMethods = new List<PaymentModel>
-{
-new PaymentModel
-{
-Id = "1",
-Name = "Dana",
-Logo = "/images/payment/Logo_DANA.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "2",
-Name = "Gopay",
-Logo = "/images/payment/Logo_GOPAY.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "3",
-Name = "BCA",
-Logo = "/images/payment/Logo_BCA.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "4",
-Name = "BRI",
-Logo = "/images/payment/Logo_BRI.svg",
-Status = PaymentStatus.Inactive
-},
-new PaymentModel
-{
-Id = "5",
-Name = "Mandiri",
-Logo = "/images/payment/Logo_MANDIRI.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "6",
-Name = "OVO",
-Logo = "/images/payment/Logo_OVO.svg",
-Status = PaymentStatus.Active
-},
-new PaymentModel
-{
-Id = "7",
-Name = "BNI",
-Logo = "/images/payment/Logo_BNI.svg",
-Status = PaymentStatus.Active
-}
-};
-
-  private void SetSelectedMethod(string method) => SelectedMethod = method;
-
-  private void SelectMethod(string method)
   {
-    if (MudDialogObj is not null)
-    {
-      dynamic d = MudDialogObj;
-      try { d.Close(DialogResult.Ok(method)); } catch { }
-    }
-  }
+      new PaymentModel { Id = 1, Name = "Dana", Logo = "/images/payment/Logo_DANA.svg", Status = PaymentStatus.Active },
+      new PaymentModel { Id = 2, Name = "Gopay", Logo = "/images/payment/Logo_GOPAY.svg", Status = PaymentStatus.Active },
+      new PaymentModel { Id = 3, Name = "BCA", Logo = "/images/payment/Logo_BCA.svg", Status = PaymentStatus.Active },
+      new PaymentModel { Id = 4, Name = "BRI", Logo = "/images/payment/Logo_BRI.svg", Status = PaymentStatus.Inactive },
+      new PaymentModel { Id = 5, Name = "Mandiri", Logo = "/images/payment/Logo_MANDIRI.svg", Status = PaymentStatus.Active },
+      new PaymentModel { Id = 6, Name = "OVO", Logo = "/images/payment/Logo_OVO.svg", Status = PaymentStatus.Active },
+      new PaymentModel { Id = 7, Name = "BNI", Logo = "/images/payment/Logo_BNI.svg", Status = PaymentStatus.Active }
+  };
+
+  private void SetSelectedMethod(int method) => SelectedMethod = method;
 
   private void Cancel() => MudDialogObj.Cancel();
 
-
   private void ConfirmPayNow()
   {
-    if (string.IsNullOrEmpty(SelectedMethod))
-    {
-      // If no method is selected, you might want to show a message or just close with a generic result
-      // For now, let's assume if it's not selected, we don't proceed with a specific method.
-      // In Image 2, "Pay Now" is enabled even without a selection, but the image implies a selection has been made.
-      // If you want "Pay Now" always enabled and then handle selection later, remove the Disabled condition.
-      SelectMethod("PayNow"); // Or handle as an error/prompt for selection
-      return;
-    }
+      if (SelectedMethod is null)
+      {
+          // kalau belum milih, tutup tanpa hasil
+          MudDialogObj.Cancel();
+          return;
+      }
 
-    SelectMethod(SelectedMethod);
+      // kirim hasil (ID metode yang dipilih)
+      MudDialogObj.Close(DialogResult.Ok(SelectedMethod.Value));
   }
 }
 
@@ -131,19 +81,14 @@ Status = PaymentStatus.Active
     gap: 12px;
   }
 
-  /* Center the dialog title to match the design */
   .mud-dialog-title {
     text-align: center;
     width: 100%;
     font-weight: 600;
   }
 
-  /* Override MudBlazor's default dialog width to make it smaller as in Image 2 */
-  /* You might need to adjust these values based on your exact layout */
   .mud-dialog {
     max-width: 400px !important;
-    /* Contoh, sesuaikan lebar ini */
     width: 90% !important;
-    /* Agar responsif */
   }
 </style>

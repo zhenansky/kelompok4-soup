@@ -1,33 +1,33 @@
+@using MyApp.BlazorUI.Services
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Add User</MudText>
   </TitleContent>
+
   <DialogContent>
     <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
       <MudPaper Elevation="0" Class="d-flex flex-column gap-6">
-        <MudTextField T="string" @bind-Value="User.Name" Placeholder="Name" Variant="Variant.Outlined"
-          Required="true" RequiredError="Name is required!" For="@(() => User.Name)" Style="height: 2rem;" />
+        <MudTextField T="string" @bind-Value="User.Name" Placeholder="Name" Variant="Variant.Outlined" Required="true"
+          RequiredError="Name is required!" For="@(() => User.Name)" Style="height: 2rem;" />
 
-        <MudTextField T="string" @bind-Value="User.Email"
-          Validation="@(new Func<string, string>(ValidateEmail))" Placeholder="Email" Variant="Variant.Outlined"
-          InputType="InputType.Email" Required="true" RequiredError="Email is required!"
+        <MudTextField T="string" @bind-Value="User.Email" Placeholder="Email" Variant="Variant.Outlined"
+          InputType="InputType.Email" Required="true" RequiredError="Email is required!" Validation="ValidateEmail"
           For="@(() => User.Email)" Style="height: 2rem;" />
 
-        <MudTextField T="string" @bind-Value="User.Password"
-          Validation="@(new Func<string, IEnumerable<string>>(ValidatePassword))" Placeholder="Password"
-          Variant="Variant.Outlined" InputType="@PasswordInput" Adornment="Adornment.End"
-          AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="TogglePasword" AdornmentAriaLabel="Show Password"
-          IconSize="Size.Small" Required="true" RequiredError="Password is required!"
-          For="@(() => User.Password)" Style="height: 2rem;" />
+        <MudTextField T="string" @bind-Value="User.Password" Placeholder="Password" Variant="Variant.Outlined"
+          InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon"
+          OnAdornmentClick="TogglePassword" AdornmentAriaLabel="Show Password" IconSize="Size.Small" Required="true"
+          RequiredError="Password is required!" Validation="ValidatePassword" For="@(() => User.Password)"
+          Style="height: 2rem;" />
 
-        <MudRadioGroup @bind-Value="User.Role" required RequiredError="Role is required!" For="@(() => User.Role)">
-        <MudText>Role: </MudText>
+        <MudText>Role:</MudText>
+        <MudRadioGroup @bind-Value="User.Role" required For="@(() => User.Role)">
           <MudRadio Value="@UserRole.Admin" Color="Color.Warning">Admin</MudRadio>
           <MudRadio Value="@UserRole.User" Color="Color.Warning">User</MudRadio>
         </MudRadioGroup>
-        
-        <MudRadioGroup @bind-Value="User.Status" required RequiredError="Status is required!" For="@(() => User.Status)">
-        <MudText>Status: </MudText>
+
+        <MudText>Status:</MudText>
+        <MudRadioGroup @bind-Value="User.Status" required For="@(() => User.Status)">
           <MudRadio Value="@UserStatus.Active" Color="Color.Success">Active</MudRadio>
           <MudRadio Value="@UserStatus.Inactive" Color="Color.Error">Inactive</MudRadio>
         </MudRadioGroup>
@@ -36,65 +36,74 @@
         {
           <MudText Color="Color.Error">@addUserError</MudText>
         }
-
       </MudPaper>
     </MudForm>
   </DialogContent>
+
   <DialogActions>
-     <MudButton OnClick="Cancel" Variant="Variant.Outlined" DropShadow="false" Class="rounded-lg button button-outline">Cancel</MudButton>
-    <MudButton OnClick="Submit" Variant="Variant.Filled" DropShadow="false" Class="rounded-lg button button-filled" Style="color: white;">Submit</MudButton>
+    <MudButton OnClick="Cancel" Variant="Variant.Outlined" Class="rounded-lg">Cancel</MudButton>
+    <MudButton OnClick="Submit" Variant="Variant.Filled" Class="rounded-lg"
+      Style="background-color:green; color: white;">Submit</MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter]
-  private IMudDialogInstance MudDialog { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
 
-  bool success;
-  string[] errors = { };
-  MudForm? form;
+  [Inject] private UserService UserService { get; set; }
+
+  private bool success;
+  private string[] errors = Array.Empty<string>();
+  private MudForm? form;
   private string addUserError = string.Empty;
-  private UserModel User = new();
-  bool isShow;
-  InputType PasswordInput = InputType.Password;
-  string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
 
-  private static string email = "test@gmail.com";
+  private UserModel User = new()
+  {
+    Role = UserRole.User,
+    Status = UserStatus.Active
+  };
 
-  private void Cancel() => MudDialog.Cancel();
+  private bool isShow;
+  private InputType PasswordInput = InputType.Password;
+  private string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
 
-  private void Submit()
+  private async Task Submit()
   {
     form?.Validate();
-    if (success)
+    if (!success) return;
+
+    try
     {
-      if (User.Email != email)
+      bool result = await UserService.CreateUserAsync(User); // atau UpdateUserAsync untuk edit
+      if (result)
       {
-        Console.WriteLine("Add User Success!");
+        // Tutup dialog dengan DialogResult.Ok(true)
         MudDialog.Close(DialogResult.Ok(true));
       }
       else
       {
-        addUserError = "Email already registered!";
+        addUserError = "Gagal menambahkan user!";
       }
     }
+    catch (Exception ex)
+    {
+      addUserError = $"Error: {ex.Message}";
+    }
+  }
+
+  private void Cancel()
+  {
+    // Tutup dialog dengan cancel
+    MudDialog.Cancel();
   }
 
   private string ValidateEmail(string value)
   {
     if (string.IsNullOrWhiteSpace(value))
-    {
       return "Email is required!";
-    }
-    else if (!System.Text.RegularExpressions.Regex.IsMatch(value,
-    @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-    {
+    if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
       return "Invalid email format!";
-    }
-    else
-    {
-      return string.Empty;
-    }
+    return string.Empty;
   }
 
   private IEnumerable<string> ValidatePassword(string value)
@@ -106,22 +115,14 @@
     }
     if (value.Length < 6 || !Regex.IsMatch(value, @"[A-Z]") || !Regex.IsMatch(value, @"[0-9]"))
     {
-      yield return "Password must be at least 6 characters, contain at least one uppercase letter and contain at least one number!";
+      yield return "Password must be at least 6 characters, contain one uppercase letter and one number!";
     }
   }
 
-  void TogglePasword()
+  private void TogglePassword()
   {
-    @if (isShow)
-    {
-      isShow = false;
-      PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
-      PasswordInput = InputType.Password;
-    }
-    else {
-      isShow = true;
-      PasswordInputIcon = Icons.Material.Filled.Visibility;
-      PasswordInput = InputType.Text;
-    }
+    isShow = !isShow;
+    PasswordInput = isShow ? InputType.Text : InputType.Password;
+    PasswordInputIcon = isShow ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
   }
 }

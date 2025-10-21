@@ -143,7 +143,7 @@ ImageUrl="images/image16.svg"},
     var dialogRef = await DialogService.ShowAsync<PaymentMethod>("Select Payment Method", options);
     var result = await dialogRef.Result;
 
-    if (result?.Data != null)
+    if (result != null && result.Data != null)
     {
       var method = result.Data.ToString() ?? "(tidak diketahui)";
       Snackbar.Add($"Membayar sebesar IDR {_totalPrice:N0} menggunakan {method}.", Severity.Success);
@@ -153,6 +153,7 @@ ImageUrl="images/image16.svg"},
       Snackbar.Add("Pembayaran dibatalkan.", Severity.Info);
     }
   }
+
 
   public class CartItem
   {
