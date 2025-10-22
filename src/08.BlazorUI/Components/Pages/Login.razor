@@ -3,6 +3,8 @@
 @using MyApp.BlazorUI.DTOs.Auth
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
 
 <PageTitle>Login</PageTitle>
 
@@ -115,20 +117,29 @@
     try
     {
       var result = await AuthService.LoginAsync(loginRequestDto);
-      if (result.Success)
+      if (result.Success && result.Data is not null)
       {
-        Console.WriteLine("Login Success!");
-        loginError = string.Empty;
-        Navigation.NavigateTo("/");
+        Console.WriteLine("✅ Login Success!");
+
+        // 🟢 Simpan token ke localStorage
+        await LocalStorage.SetItemAsync("accessToken", result.Data.AccessToken);
+        await LocalStorage.SetItemAsync("refreshToken", result.Data.RefreshToken);
+        await LocalStorage.SetItemAsync("expiresAt", result.Data.ExpiresAt);
+
+        Console.WriteLine($"🔐 Token saved: {result.Data.AccessToken.Substring(0, 20)}...");
+
+        Navigation.NavigateTo("/", forceLoad: true);
       }
       else
       {
-        loginError = result.Message;
+        loginError = result.Message ?? "Login gagal.";
+        Console.WriteLine($"❌ Login failed: {loginError}");
       }
     }
     catch (Exception ex)
     {
-      loginError = $"Server error";
+      loginError = "Server error";
+      Console.WriteLine($"💥 Exception saat login: {ex.Message}");
     }
     finally
     {
@@ -136,6 +147,7 @@
       StateHasChanged();
     }
   }
+
 
   private async Task SubmitResendEmail()
   {

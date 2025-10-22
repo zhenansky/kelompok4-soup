@@ -1,109 +1,170 @@
 @page "/admin-dashboard"
-@using MyApp.BlazorUI.Components.Shared.Admin
+@using Blazored.LocalStorage
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Models
 @layout AdminLayout
+@inject DashboardService DashboardService
+@inject InvoiceService InvoiceService
+@inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject ILocalStorageService LocalStorage
+@using MyApp.BlazorUI.Components.Shared.Admin
+@using MyApp.BlazorUI.Services.Interfaces
+
+@inject IAuthService AuthService
+
 
 <PageTitle>Dashboard</PageTitle>
 
-<MudPaper Elevation="1" Style="padding: 1rem; max-height: calc(100vh - 8rem);">
-  <MudText Typo="Typo.h4" Style="padding: 0 0 1rem 0;">Welcome, Admin</MudText>
+<MudPaper Elevation="1" Class="pa-4" Style="max-height: calc(100vh - 5rem); overflow-y: auto;">
+  <MudText Typo="Typo.h4" Class="mb-4">Welcome, Admin</MudText>
 
-  <MudGrid>
+  <!-- GRID CARD SECTION -->
+  <MudGrid Spacing="2">
     <MudItem xs="12" sm="4">
-      <MudCard Class="card" Style="background-color: red;">
-        <MudCardHeader Class="d-flex justify-center gap-3" Style="padding: 0.5rem 0 0 0;">
+      <MudCard Class="card" Style="background-color: #ef4444; color: white;">
+        <MudCardHeader Class="d-flex justify-center align-center gap-2 py-2">
           <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" />
           <MudText Typo="Typo.body2">Total User Active</MudText>
         </MudCardHeader>
-        <MudCardContent Style="padding: 0 0 0.5rem 0;">
-          <MudText Typo=" Typo.h3" Class="d-flex justify-center card-text">3</MudText>
+        <MudCardContent Class="py-1">
+          <MudText Typo="Typo.h3" Class="text-center">@totalUsersActive</MudText>
         </MudCardContent>
       </MudCard>
     </MudItem>
 
     <MudItem xs="12" sm="4">
-      <MudCard Class="card" Style="background-color: blue;">
-        <MudCardHeader Class="d-flex justify-center gap-3" Style="padding: 0.5rem 0 0 0;">
+      <MudCard Class="card" Style="background-color: #3b82f6; color: white;">
+        <MudCardHeader Class="d-flex justify-center align-center gap-2 py-2">
           <MudIcon Icon="@Icons.Material.Filled.Payments" />
           <MudText Typo="Typo.body2">Total Payment</MudText>
         </MudCardHeader>
-        <MudCardContent Style="padding: 0 0 0.5rem 0;">
-          <MudText Typo=" Typo.h3" Class="d-flex justify-center card-text">7</MudText>
+        <MudCardContent Class="py-1">
+          <MudText Typo="Typo.h3" Class="text-center">@totalInvoices</MudText>
         </MudCardContent>
       </MudCard>
     </MudItem>
 
     <MudItem xs="12" sm="4">
-      <MudCard Class="card" Style="background-color: purple;">
-        <MudCardHeader Class="d-flex justify-center gap-3" Style="padding: 0.5rem 0 0 0;">
+      <MudCard Class="card" Style="background-color: #9333ea; color: white;">
+        <MudCardHeader Class="d-flex justify-center align-center gap-2 py-2">
           <MudIcon Icon="@Icons.Material.Filled.PeopleAlt" />
           <MudText Typo="Typo.body2">Total Member</MudText>
         </MudCardHeader>
-        <MudCardContent Style="padding: 0 0 0.5rem 0;">
-          <MudText Typo=" Typo.h3" Class="d-flex justify-center card-text">2</MudText>
+        <MudCardContent Class="py-1">
+          <MudText Typo="Typo.h3" Class="text-center">@totalMembers</MudText>
         </MudCardContent>
       </MudCard>
     </MudItem>
   </MudGrid>
 
-  <MudDivider Class="my-7 line" />
+  <MudDivider Class="my-6" />
 
-  <MudTable Items="@Data" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-    LoadingProgressColor="Color.Info" Class="mb-10">
-    <HeaderContent>
-      <MudTh Class="thead">Email</MudTh>
-      <MudTh Class="thead">No. Invoice</MudTh>
-      <MudTh Class="thead">Date</MudTh>
-      <MudTh Class="thead">Total Course</MudTh>
-      <MudTh Class="thead">Total Price</MudTh>
-      <MudTh Class="thead">Action</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-      <MudTd DataLabel="Email">@context.Email</MudTd>
-      <MudTd DataLabel="No. Invoice">@context.NoInvoice</MudTd>
-      <MudTd DataLabel="Date">@context.Date.ToString("dddd, dd MMMM yyyy")</MudTd>
-      <MudTd DataLabel="Total Course">@context.TotalCourse</MudTd>
-      <MudTd DataLabel="Total Price">
-        @("IDR " + context.TotalPrice.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
-      </MudTd>
-      <MudTd DataLabel="Action">
-        <MudButton OnClick="OpenDialogAsync" Variant="Variant.Filled" Class="rounded-lg button button-filled"
-          Style="color: white;">
-          Detail
-        </MudButton>
-      </MudTd>
-    </RowTemplate>
-    <PagerContent>
-      <MudTablePager />
-    </PagerContent>
-  </MudTable>
-
+  <!-- TABLE SECTION -->
+  <div style="overflow-x: auto;">
+    <MudTable Items="@invoices" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
+      LoadingProgressColor="Color.Info" Dense="true" Class="rounded-lg shadow-sm border" Elevation="1"
+      Style="min-width: 600px;">
+      <HeaderContent>
+        <MudTh>Email</MudTh>
+        <MudTh>No. Invoice</MudTh>
+        <MudTh>Date</MudTh>
+        <MudTh>Total Course</MudTh>
+        <MudTh>Total Price</MudTh>
+        <MudTh>Action</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd DataLabel="Email">@(!string.IsNullOrWhiteSpace(context.Email) ? context.Email : "(no email)")</MudTd>
+        <MudTd DataLabel="No. Invoice">@context.NoInvoice</MudTd>
+        <MudTd DataLabel="Date">@context.Date.ToString("dddd, dd MMMM yyyy")</MudTd>
+        <MudTd DataLabel="Total Course">@context.TotalCourse</MudTd>
+        <MudTd DataLabel="Total Price">
+          @("IDR " + context.TotalPrice.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
+        </MudTd>
+        <MudTd DataLabel="Action">
+          <MudButton OnClick="() => OpenDialogAsync(context.InvoiceId)" Variant="Variant.Filled"
+            Class="rounded-lg button button-filled" Style="color:white; width:100px">
+            Detail
+          </MudButton>
+        </MudTd>
+      </RowTemplate>
+      <PagerContent>
+        <MudTablePager />
+      </PagerContent>
+    </MudTable>
+  </div>
 </MudPaper>
 
 @code {
   private bool _loading;
-  private IEnumerable<DataModel> Data = new List<DataModel>
-{
-new DataModel
-{
-Email = "nurimamiskandar@gmail.com",
-NoInvoice = "DLA00002",
-Date = new DateTime(2023, 5, 20),
-TotalCourse = 3,
-TotalPrice = 1450000m
-},
-new DataModel
-{
-Email = "mary@example.com",
-NoInvoice = "DLA00003",
-Date = new DateTime(2023, 5, 24),
-TotalCourse = 2,
-TotalPrice = 500000m
-},
-};
+  private bool _loaded;
+  private int totalUsersActive;
+  private int totalMembers;
+  private int totalInvoices;
+  private List<InvoiceItem> invoices = new();
 
-  private Task OpenDialogAsync()
+  protected override async Task OnAfterRenderAsync(bool firstRender)
   {
+    if (!firstRender || _loaded)
+      return;
+
+    _loading = true;
+
+    try
+    {
+      // 1️⃣ Ambil data public dashboard (tanpa token)
+      totalUsersActive = await DashboardService.GetTotalActiveUsersAsync();
+      totalMembers = await DashboardService.GetTotalMembersAsync();
+
+      // 2️⃣ Coba baca token dari LocalStorage
+      string? token = null;
+      try
+      {
+        token = await LocalStorage.GetItemAsync<string>("accessToken");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("⚠️ LocalStorage belum siap atau tidak tersedia: " + ex.Message);
+      }
+
+      // 3️⃣ Kalau token ada, ambil data invoice
+      if (!string.IsNullOrWhiteSpace(token))
+      {
+        Console.WriteLine("🔑 Token ditemukan, ambil data invoice...");
+
+        invoices = await InvoiceService.GetInvoicesAsync(token);
+        totalInvoices = invoices?.Count ?? 0;
+        Console.WriteLine($"📦 Jumlah invoice diterima: {totalInvoices}");
+
+        foreach (var inv in invoices)
+          inv.Email ??= "(no email)";
+      }
+      else
+      {
+        invoices.Clear();
+        totalInvoices = 0;
+        Console.WriteLine("🚫 Token tidak tersedia: skip memuat invoice.");
+      }
+
+      _loaded = true;
+      StateHasChanged(); // ⬅️ Pastikan UI refresh setelah data terload
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading dashboard: {ex.Message}", Severity.Error);
+      Console.WriteLine($"❌ Dashboard error: {ex}");
+    }
+    finally
+    {
+      _loading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task OpenDialogAsync(int invoiceId)
+  {
+    var parameters = new DialogParameters { ["InvoiceId"] = invoiceId };
+
     var options = new DialogOptions
     {
       CloseOnEscapeKey = true,
@@ -111,16 +172,7 @@ TotalPrice = 500000m
       FullWidth = true
     };
 
-    return DialogService.ShowAsync<DetailDialog>("Detail Invoice", options);
-  }
-
-  public class DataModel
-  {
-    public string Email { get; set; } = string.Empty;
-    public string NoInvoice { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
-    public int TotalCourse { get; set; }
-    public decimal TotalPrice { get; set; }
+    await DialogService.ShowAsync<DetailDialog>("Detail Invoice", parameters, options);
   }
 }
 
@@ -129,19 +181,7 @@ TotalPrice = 500000m
     color: white;
   }
 
-  .card-text {
-    font-weight: bold;
-  }
-
-  .line {
-    border: 1px solid black;
-  }
-
   .mud-table-head th {
     background-color: #dbffdd !important;
-  }
-
-  .thead {
-    text-align: center;
   }
 </style>

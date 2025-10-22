@@ -36,15 +36,19 @@ namespace MyApp.WebAPI.Services
       var userRoles = await _userManager.GetRolesAsync(user);
 
       var claims = new List<Claim>
-      {
+    {
         new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
         new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
         new Claim("name", user.Name),
         new Claim("status", user.Status.ToString()),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-      };
+    };
 
-      claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+      foreach (var role in userRoles)
+      {
+        claims.Add(new Claim(ClaimTypes.Role, role));
+        claims.Add(new Claim("role", role)); // ✅ untuk FE
+      }
 
       var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
       var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -1,89 +1,136 @@
+@using Blazored.LocalStorage
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Models
+@inject ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+@inject InvoiceService InvoiceService
+
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Detail Invoice</MudText>
-    <MudGrid>
-      <MudItem xs="12" sm="6" Class="mt-5 d-flex gap-8">
+
+    <MudGrid Class="mt-4">
+      <MudItem xs="12" sm="6" Class="d-flex gap-8">
         <MudItem>
-          <MudText>No. Invoice: </MudText>
-          <MudText>Date: </MudText>
+          <MudText>No. Invoice:</MudText>
+          <MudText>Date:</MudText>
         </MudItem>
         <MudItem>
-          <MudText>SOU00003</MudText>
-          <MudText>12 June 2022</MudText>
+          <MudText>@(Invoice?.NoInvoice ?? "-")</MudText>
+          <MudText>
+            @(Invoice?.Date != DateTime.MinValue
+                        ? Invoice?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+                        : "-")
+          </MudText>
         </MudItem>
       </MudItem>
-      <MudItem xs="12" sm="6" Class="mt-5 d-flex justify-end align-end gap-8">
-        <MudText Typo="Typo.body1" Style="font-weight: 700;">Total Price</MudText>
-        <MudText Typo="Typo.body1" Style="font-weight: 700;">IDR 450.000</MudText>
+
+      <MudItem xs="12" sm="6" Class="d-flex justify-end align-end gap-8">
+        <MudText Typo="Typo.body1" Style="font-weight:700;">Total Price</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:700;">
+          @("IDR " + (Invoice?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
+        </MudText>
       </MudItem>
     </MudGrid>
   </TitleContent>
+
   <DialogContent>
-    <MudTable Items="@invoice" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-      LoadingProgressColor="Color.Info" Class="mt-3">
+    <MudTable Items="InvoiceItems" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="_loading">
       <HeaderContent>
-        <MudTh Class="thead">No</MudTh>
-        <MudTh Class="thead">Course Name</MudTh>
-        <MudTh Class="thead">Type</MudTh>
-        <MudTh Class="thead">Schedule</MudTh>
-        <MudTh Class="thead">Price</MudTh>
+        <MudTh>No</MudTh>
+        <MudTh>Course Name</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh>Schedule</MudTh>
+        <MudTh>Price</MudTh>
       </HeaderContent>
+
       <RowTemplate>
-        <MudTd DataLabel="No">@context.No</MudTd>
-        <MudTd DataLabel="Course Name">@context.CourseName</MudTd>
-        <MudTd DataLabel="Type">@context.Type</MudTd>
-        <MudTd DataLabel="Schedule">@context.schedule.ToString("dddd, dd MMMM yyyy")</MudTd>
-        <MudTd DataLabel="Price">
+        <MudTd>@context.No</MudTd>
+        <MudTd>@context.CourseName</MudTd>
+        <MudTd>@context.Type</MudTd>
+        <MudTd>
+          @context.Schedule.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+        </MudTd>
+        <MudTd>
           @("IDR " + context.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
         </MudTd>
       </RowTemplate>
-      <PagerContent>
-        <MudTablePager />
-      </PagerContent>
+
+      <NoRecordsContent>
+        <MudText Class="m-3">Tidak ada data kursus untuk invoice ini.</MudText>
+      </NoRecordsContent>
     </MudTable>
   </DialogContent>
+
   <DialogActions>
-    <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
+    <MudButton Color="Color.Primary" OnClick="CloseDialog">OK</MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter]
-  private IMudDialogInstance MudDialog { get; set; }
+  [Parameter] public int InvoiceId { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-  private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+  private bool _loading = false;
+  private InvoiceDetailData? Invoice;
+  private List<CourseItem> InvoiceItems = new();
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadInvoiceAsync();
+  }
 
-  private void Cancel() => MudDialog.Cancel();
+  private async Task LoadInvoiceAsync()
+  {
+    _loading = true;
+    try
+    {
+      var token = await LocalStorage.GetItemAsync<string>("accessToken");
 
-  private bool _loading;
-  private IEnumerable<InvoiceModel> invoice = new List<InvoiceModel>
-{
-new InvoiceModel
-{
-No = 1,
-CourseName = "Tom Yum Thailand",
-Type = "Asian",
-schedule = new DateTime(2023, 5, 20),
-Price = 450000m
-},
-};
+      if (string.IsNullOrEmpty(token))
+      {
+        Snackbar.Add("⚠️ Token tidak ditemukan, silakan login kembali.", Severity.Warning);
+        _loading = false;
+        return;
+      }
 
-  public class InvoiceModel
+      Console.WriteLine($"🪪 Token ditemukan: {token.Substring(0, Math.Min(token.Length, 15))}...");
+
+      Invoice = await InvoiceService.GetInvoiceDetailAsync(InvoiceId, token);
+
+      if (Invoice == null)
+      {
+        Snackbar.Add("❌ Gagal memuat detail invoice.", Severity.Error);
+        _loading = false;
+        return;
+      }
+
+      InvoiceItems = Invoice.ListCourse?.Select((c, i) => new CourseItem
+      {
+        No = i + 1,
+        CourseName = c.Name,
+        Type = c.Category,
+        Schedule = c.ScheduleDate,
+        Price = c.Price
+      }).ToList() ?? new List<CourseItem>();
+
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"❌ Error loading invoice: {ex.Message}", Severity.Error);
+      Console.WriteLine($"❌ Error detail: {ex}");
+    }
+
+    _loading = false;
+  }
+
+  private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+
+  private class CourseItem
   {
     public int No { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public DateTime schedule { get; set; }
+    public DateTime Schedule { get; set; }
     public decimal Price { get; set; }
   }
 }
-
-<style>
-  .mud-table-head th {
-    background-color: #dbffdd !important;
-  }
-
-  .thead {
-    text-align: center;
-  }
-</style>

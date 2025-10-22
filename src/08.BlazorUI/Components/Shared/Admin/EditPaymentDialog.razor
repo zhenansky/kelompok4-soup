@@ -1,56 +1,50 @@
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Components.Models
+
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Edit Payment</MudText>
   </TitleContent>
   <DialogContent>
     <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-      <MudPaper Elevation="0" Class="d-flex flex-column gap-6">
-        <MudTextField T="string" @bind-Value="Payment.Name" Placeholder="Name" Variant="Variant.Outlined"
-          Required="true" RequiredError="Name is required!" For="@(() => Payment.Name)" Style="height: 2rem;" />
+      <MudTextField T="string" @bind-Value="Payment.Name" Placeholder="Name" Variant="Variant.Outlined" Required="true"
+        RequiredError="Name is required!" />
+      <MudText Typo="Typo.body1">Upload Logo:</MudText>
+      <InputFile OnChange="OnLogoSelected" accept="image/*" />
+      @if (!string.IsNullOrEmpty(Payment.Logo))
+      {
+        <MudImage Src="@Payment.Logo" Width="50" Height="50" Class="mt-2" />
+      }
 
-        <MudText Typo="Typo.body1">Upload Logo:</MudText>
-        <InputFile OnChange="OnLogoSelected" accept="image/*" />
+      <MudRadioGroup T="PaymentStatus" @bind-Value="Payment.Status" required>
+        <MudRadio T="PaymentStatus" Value=PaymentStatus.Active Color="Color.Success">Active</MudRadio>
+        <MudRadio T="PaymentStatus" Value=PaymentStatus.Inactive Color="Color.Error">Inactive</MudRadio>
+      </MudRadioGroup>
 
-        @if (!string.IsNullOrEmpty(Payment.Logo))
-        {
-          <MudImage Src="@Payment.Logo" Width="50" Height="50" Class="mt-2" />
-        }
-
-        <MudRadioGroup @bind-Value="Payment.Status" required RequiredError="Status is required!"
-          For="@(() => Payment.Status)">
-          <MudText>Status: </MudText>
-          <MudRadio Value="@PaymentStatus.Active" Color="Color.Success">Active</MudRadio>
-          <MudRadio Value="@PaymentStatus.Inactive" Color="Color.Error">Inactive</MudRadio>
-        </MudRadioGroup>
-
-        @if (!string.IsNullOrEmpty(paymentError))
-        {
-          <MudText Color="Color.Error">@paymentError</MudText>
-        }
-
-      </MudPaper>
+      @if (!string.IsNullOrEmpty(paymentError))
+      {
+        <MudText Color="Color.Error">@paymentError</MudText>
+      }
     </MudForm>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel" Variant="Variant.Outlined" DropShadow="false" Class="rounded-lg button button-outline">
-      Cancel
+    <MudButton OnClick="Cancel" Variant="Variant.Outlined">Cancel</MudButton>
+    <MudButton OnClick="SubmitAsync" Variant="Variant.Filled" Style="background-color:green; color:white;">Submit
     </MudButton>
-    <MudButton OnClick="Submit" Variant="Variant.Filled" DropShadow="false" Class="rounded-lg button button-filled"
-      Style="color: white;">Submit</MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter]
-  private IMudDialogInstance MudDialog { get; set; }
+  [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
   [Inject] private IWebHostEnvironment Env { get; set; } = default!;
+  [Inject] private PaymentService PaymentService { get; set; } = default!;
+
+  [Parameter] public PaymentModel Payment { get; set; } = default!;
 
   bool success;
   string[] errors = { };
   MudForm? form;
   private string paymentError = string.Empty;
-  [Parameter] public PaymentModel Payment { get; set; } = default!;
-  private static string name = "Dana";
 
   private void Cancel() => MudDialog.Cancel();
 
@@ -59,30 +53,26 @@
     var file = e.File;
     var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
     var savePath = Path.Combine(Env.WebRootPath, "images", "payment", fileName);
-
     Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);
-
     await using var fs = new FileStream(savePath, FileMode.Create);
-    await file.OpenReadStream(maxAllowedSize: 2_000_000).CopyToAsync(fs);
-
+    await file.OpenReadStream(2_000_000).CopyToAsync(fs);
     Payment.Logo = $"/images/payment/{fileName}";
     StateHasChanged();
   }
 
-  private void Submit()
+  private async Task SubmitAsync()
   {
     form?.Validate();
-    if (success)
+    if (!success) return;
+
+    try
     {
-      if (Payment.Name != name)
-      {
-        Console.WriteLine("Add New Payment Method Success!");
-        MudDialog.Close(DialogResult.Ok(true));
-      }
-      else
-      {
-        paymentError = "Payment method already registered!";
-      }
+      await PaymentService.UpdatePaymentAsync(Payment);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (Exception ex)
+    {
+      paymentError = $"Failed to update payment method: {ex.Message}";
     }
   }
 }

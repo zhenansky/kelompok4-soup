@@ -44,8 +44,9 @@ namespace MyApp.WebAPI.Services
         throw new ForbiddenException("Only administrators can access all invoices.");
 
       var invoices = _context.Invoices
-                .AsNoTracking()
-                .ProjectTo<InvoiceDTO>(_mapper.ConfigurationProvider);
+          .Include(i => i.User) // ⬅️ tambahan penting
+          .AsNoTracking()
+          .ProjectTo<InvoiceDTO>(_mapper.ConfigurationProvider);
 
       return await invoices.ToPagedResultAsync(pageNumber, pageSize);
     }

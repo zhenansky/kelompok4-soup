@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using MyApp.BlazorUI.Helpers;
 
 namespace MyApp.BlazorUI.Services
 {
@@ -21,37 +22,31 @@ namespace MyApp.BlazorUI.Services
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+      var identity = new ClaimsIdentity();
+
       try
       {
-        var token = await _localStorage.GetItemAsync<string>("authToken");
+        // 🔹 Tunggu 0.5 detik untuk memastikan LocalStorage siap
+        await Task.Delay(500);
 
-        if (string.IsNullOrWhiteSpace(token))
-          return _anonymous;
+        var token = await _localStorage.GetItemAsync<string>("accessToken");
 
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var claims = ParseClaimsFromJwt(token);
-        var expiry = claims.FirstOrDefault(c => c.Type == "exp")?.Value;
-
-        if (expiry != null)
+        if (!string.IsNullOrEmpty(token))
         {
-          var expiryDateTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expiry));
-
-          if (expiryDateTime <= DateTimeOffset.UtcNow)
-          {
-            await _localStorage.RemoveItemAsync("authToken");
-            return _anonymous;
-          }
+          var claims = JwtParser.ParseClaimsFromJwt(token);
+          identity = new ClaimsIdentity(claims, "jwt");
         }
-
-        var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "jwt"));
-        return new AuthenticationState(user);
       }
-      catch
+      catch (InvalidOperationException)
       {
-        return _anonymous;
+        // JS interop belum siap
+        await Task.Delay(200);
       }
+
+      var user = new ClaimsPrincipal(identity);
+      return new AuthenticationState(user);
     }
+
 
     public void NotifyUserAuthentication(string token)
     {

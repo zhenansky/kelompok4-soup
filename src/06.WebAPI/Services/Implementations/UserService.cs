@@ -17,6 +17,9 @@ namespace MyApp.WebAPI.Services.Implementations
             _roleManager = roleManager;
         }
 
+        // ======================
+        // GET ALL USERS
+        // ======================
         public async Task<object> GetAllUsersAsync(int page, int pageSize)
         {
             var query = _userManager.Users.AsNoTracking();
@@ -45,6 +48,9 @@ namespace MyApp.WebAPI.Services.Implementations
             };
         }
 
+        // ======================
+        // GET USER BY ID
+        // ======================
         public async Task<object> GetUserByIdAsync(int id)
         {
             var user = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
@@ -63,6 +69,9 @@ namespace MyApp.WebAPI.Services.Implementations
             };
         }
 
+        // ======================
+        // CREATE USER
+        // ======================
         public async Task<object> CreateUserAsync(CreateUserRequest request)
         {
             var email = request.Email?.Trim() ?? "";
@@ -84,7 +93,7 @@ namespace MyApp.WebAPI.Services.Implementations
                 UserName = email,
                 Email = email,
                 Name = request.Name,
-                Status = request.IsActive ? UserStatus.Active : UserStatus.Inactive,
+                Status = request.Status, // ✅ langsung dari enum
                 EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -105,6 +114,9 @@ namespace MyApp.WebAPI.Services.Implementations
             };
         }
 
+        // ======================
+        // UPDATE USER
+        // ======================
         public async Task<object> UpdateUserAsync(int id, UpdateUserRequest request)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
@@ -122,7 +134,7 @@ namespace MyApp.WebAPI.Services.Implementations
             user.Name = request.Name;
             user.Email = newEmail;
             user.UserName = newEmail;
-            user.Status = request.IsActive ? UserStatus.Active : UserStatus.Inactive;
+            user.Status = request.Status; // ✅ gunakan enum dari DTO
             user.UpdatedAt = DateTime.UtcNow;
 
             var result = await _userManager.UpdateAsync(user);
@@ -141,6 +153,9 @@ namespace MyApp.WebAPI.Services.Implementations
             };
         }
 
+        // ======================
+        // DELETE USER
+        // ======================
         public async Task<object> DeleteUserAsync(int id)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
