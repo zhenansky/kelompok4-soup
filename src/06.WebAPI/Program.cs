@@ -91,6 +91,18 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddApplicationServices();
 
+// Mendefinisikan kebijakan CORS "AllowAll"
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowAll",
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:5124") 
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
+
 // ===============================================
 // 4️⃣ Tambahkan Controller, Swagger, dan Authorization
 // ===============================================
@@ -166,7 +178,7 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

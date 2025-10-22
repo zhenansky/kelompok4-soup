@@ -45,7 +45,7 @@ namespace MyApp.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateScheduleDto createDto)
+        public async Task<IActionResult> Create([FromForm] CreateScheduleDto createDto)
         {
             var newSchedule = await _scheduleService.CreateAsync(createDto);
             var response = new ApiResponse<ScheduleDto>

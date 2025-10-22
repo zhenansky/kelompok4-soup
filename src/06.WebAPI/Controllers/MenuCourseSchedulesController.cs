@@ -31,7 +31,7 @@ namespace MyApp.WebAPI.Controllers
         }
 
         [HttpPost("schedules")]
-        public async Task<IActionResult> AssignSchedule([FromBody] CreateMenuCourseScheduleDto createDto)
+        public async Task<IActionResult> AssignSchedule([FromForm] CreateMenuCourseScheduleDto createDto)
         {
             var newAssignment = await _mcsService.AssignScheduleAsync(createDto);
             var response = new ApiResponse<MenuCourseScheduleDto>
@@ -44,7 +44,7 @@ namespace MyApp.WebAPI.Controllers
         }
 
         [HttpPut("schedules/{id}")]
-        public async Task<IActionResult> UpdateAssignment(int id, [FromBody] UpdateMenuCourseScheduleDto updateDto)
+        public async Task<IActionResult> UpdateAssignment(int id, [FromForm] UpdateMenuCourseScheduleDto updateDto)
         {
             var updatedAssignment = await _mcsService.UpdateAssignmentAsync(id, updateDto);
 

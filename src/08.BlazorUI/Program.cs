@@ -44,6 +44,13 @@ builder.Services.AddHttpClient<IAuthClient, AuthClient>(client =>
 })
 .AddHttpMessageHandler<AuthTokenHandler>();
 
+// Daftarkan HttpClient generik yang di-inject di Landingpage.razor
+builder.Services.AddHttpClient(string.Empty, client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] 
+        ?? "http://localhost:5099/");
+});
+
 // Register other services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

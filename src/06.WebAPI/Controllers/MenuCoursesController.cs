@@ -50,7 +50,7 @@ namespace MyApp.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateMenuCourseDto createDto)
+        public async Task<IActionResult> Create([FromForm] CreateMenuCourseDto createDto)
         {
             var newCourse = await _menuCourseService.CreateMenuCourseAsync(createDto);
             var response = new ApiResponse<MenuCourseDto>
@@ -63,7 +63,7 @@ namespace MyApp.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateMenuCourseDto updateDto)
+        public async Task<IActionResult> Update(int id, [FromForm] UpdateMenuCourseDto updateDto)
         {
             var updatedCourse = await _menuCourseService.UpdateMenuCourseAsync(id, updateDto);
             if (updatedCourse is null)

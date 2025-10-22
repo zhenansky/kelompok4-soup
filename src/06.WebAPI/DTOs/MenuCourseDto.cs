@@ -14,7 +14,7 @@ namespace   MyApp.WebAPI.DTOs
     public class CreateMenuCourseDto
     {
         public string Name { get; set; } = string.Empty; 
-        public string? Image { get; set; }
+        public IFormFile? ImageFile { get; set; }
         public decimal Price { get; set; }
         public string? Description { get; set; }
         public int CategoryId { get; set; }
@@ -23,7 +23,7 @@ namespace   MyApp.WebAPI.DTOs
     public class UpdateMenuCourseDto
     {
         public string Name { get; set; } = string.Empty;
-        public string? Image { get; set; }
+        public IFormFile? ImageFile { get; set; }
         public decimal Price { get; set; }
         public string? Description { get; set; }
         public int CategoryId { get; set; }
