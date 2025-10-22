@@ -8,6 +8,11 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ILocalStorageService LocalStorage
+@using MyApp.BlazorUI.Components.Shared.Admin
+@using MyApp.BlazorUI.Services.Interfaces
+
+@inject IAuthService AuthService
+
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -77,10 +82,10 @@
           @("IDR " + context.TotalPrice.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
         </MudTd>
         <MudTd DataLabel="Action">
-          @* <MudButton OnClick="() => OpenDialogAsync(context.InvoiceId)" Variant="Variant.Filled"
+          <MudButton OnClick="() => OpenDialogAsync(context.InvoiceId)" Variant="Variant.Filled"
             Class="rounded-lg button button-filled" Style="color:white; width:100px">
             Detail
-          </MudButton> *@
+          </MudButton>
         </MudTd>
       </RowTemplate>
       <PagerContent>
@@ -156,19 +161,19 @@
     }
   }
 
-
-
-  @* private async Task OpenDialogAsync(int invoiceId)
+  private async Task OpenDialogAsync(int invoiceId)
   {
     var parameters = new DialogParameters { ["InvoiceId"] = invoiceId };
+
     var options = new DialogOptions
     {
       CloseOnEscapeKey = true,
       MaxWidth = MaxWidth.Medium,
       FullWidth = true
     };
+
     await DialogService.ShowAsync<DetailDialog>("Detail Invoice", parameters, options);
-  } *@
+  }
 }
 
 <style>

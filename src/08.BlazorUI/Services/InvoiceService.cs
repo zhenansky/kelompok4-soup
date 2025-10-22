@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 using MyApp.BlazorUI.Models;
 
@@ -14,30 +13,30 @@ namespace MyApp.BlazorUI.Services
             _httpClient = httpClient;
         }
 
-        // Ambil semua invoice — optional token parameter
+        // 🔹 Ambil semua invoice (daftar)
         public async Task<List<InvoiceItem>> GetInvoicesAsync(string? token = null)
         {
             try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "api/Invoices?pageNumber=1&pageSize=10");
+
                 if (!string.IsNullOrWhiteSpace(token))
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
 
-                // Debug JSON
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"❌ Gagal ambil daftar invoice: {response.StatusCode}");
+                    return new List<InvoiceItem>();
+                }
+
                 var json = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"🧾 Invoice JSON Response: {json}");
 
-                // Deserialize menggunakan model InvoiceResponse → Data → Items
-                var wrapped = System.Text.Json.JsonSerializer.Deserialize<InvoiceResponse>(
+                var wrapped = JsonSerializer.Deserialize<InvoiceResponse>(
                     json,
-                    new System.Text.Json.JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    }
-                );
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 return wrapped?.Data?.Items ?? new List<InvoiceItem>();
             }
@@ -48,29 +47,38 @@ namespace MyApp.BlazorUI.Services
             }
         }
 
-
-        // Ambil detail invoice — optional token parameter
-        public async Task<InvoiceDetailModel?> GetInvoiceDetailAsync(int invoiceId, string? token = null)
+        // 🔹 Ambil detail invoice
+        public async Task<InvoiceDetailData?> GetInvoiceDetailAsync(int invoiceId, string? token = null)
         {
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, $"api/Invoices/{invoiceId}");
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    Console.WriteLine("🚫 Token kosong sebelum kirim request detail invoice.");
+                    return null;
+                }
 
-                if (!string.IsNullOrWhiteSpace(token))
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var request = new HttpRequestMessage(HttpMethod.Get, $"api/Invoices/{invoiceId}");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                Console.WriteLine($"🔎 Request detail invoice {invoiceId} dengan token prefix: {token.Substring(0, Math.Min(token.Length, 15))}...");
 
                 var response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var serverResponse = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"❌ Gagal ambil detail invoice. Status: {response.StatusCode}\nServer response: {serverResponse}");
+                    return null;
+                }
 
                 var json = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"🧾 Invoice Detail JSON Response: {json}");
+                Console.WriteLine($"🧾 Invoice Detail Response: {json}");
 
-                var result = JsonSerializer.Deserialize<ApiResponse<InvoiceDetailModel>>(
+                var invoiceResponse = JsonSerializer.Deserialize<InvoiceDetailResponse>(
                     json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                );
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                return result?.Data;
+                return invoiceResponse?.Data;
             }
             catch (Exception ex)
             {
@@ -78,5 +86,7 @@ namespace MyApp.BlazorUI.Services
                 return null;
             }
         }
+
+
     }
 }

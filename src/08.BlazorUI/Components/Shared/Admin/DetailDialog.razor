@@ -1,36 +1,41 @@
 @using Blazored.LocalStorage
-@using Microsoft.AspNetCore.Components.Authorization
 @using MyApp.BlazorUI.Services
 @using MyApp.BlazorUI.Models
-@inject InvoiceService InvoiceService
+@inject ILocalStorageService LocalStorage
 @inject ISnackbar Snackbar
+@inject InvoiceService InvoiceService
 
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Detail Invoice</MudText>
-    <MudGrid>
-      <MudItem xs="12" sm="6" Class="mt-5 d-flex gap-8">
+
+    <MudGrid Class="mt-4">
+      <MudItem xs="12" sm="6" Class="d-flex gap-8">
         <MudItem>
-          <MudText>No. Invoice: </MudText>
-          <MudText>Date: </MudText>
+          <MudText>No. Invoice:</MudText>
+          <MudText>Date:</MudText>
         </MudItem>
         <MudItem>
-          <MudText>@Invoice?.NoInvoice</MudText>
-          <MudText>@Invoice?.Date.ToString("dddd, dd MMMM yyyy")</MudText>
+          <MudText>@(Invoice?.NoInvoice ?? "-")</MudText>
+          <MudText>
+            @(Invoice?.Date != DateTime.MinValue
+                        ? Invoice?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+                        : "-")
+          </MudText>
         </MudItem>
       </MudItem>
 
-      <MudItem xs="12" sm="6" Class="mt-5 d-flex justify-end align-end gap-8">
-        <MudText Typo="Typo.body1" Style="font-weight: 700;">Total Price</MudText>
-        <MudText Typo="Typo.body1" Style="font-weight: 700;">
-          @("IDR " + Invoice?.TotalPrice.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
+      <MudItem xs="12" sm="6" Class="d-flex justify-end align-end gap-8">
+        <MudText Typo="Typo.body1" Style="font-weight:700;">Total Price</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:700;">
+          @("IDR " + (Invoice?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
         </MudText>
       </MudItem>
     </MudGrid>
   </TitleContent>
 
   <DialogContent>
-    <MudTable Items="@InvoiceItems" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading">
+    <MudTable Items="InvoiceItems" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="_loading">
       <HeaderContent>
         <MudTh>No</MudTh>
         <MudTh>Course Name</MudTh>
@@ -38,31 +43,37 @@
         <MudTh>Schedule</MudTh>
         <MudTh>Price</MudTh>
       </HeaderContent>
+
       <RowTemplate>
         <MudTd>@context.No</MudTd>
         <MudTd>@context.CourseName</MudTd>
         <MudTd>@context.Type</MudTd>
-        <MudTd>@context.Schedule.ToString("dddd, dd MMMM yyyy")</MudTd>
-        <MudTd>@("IDR " + context.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID")))</MudTd>
+        <MudTd>
+          @context.Schedule.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+        </MudTd>
+        <MudTd>
+          @("IDR " + context.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
+        </MudTd>
       </RowTemplate>
+
+      <NoRecordsContent>
+        <MudText Class="m-3">Tidak ada data kursus untuk invoice ini.</MudText>
+      </NoRecordsContent>
     </MudTable>
   </DialogContent>
 
   <DialogActions>
-    <MudButton Color="Color.Primary" OnClick="Submit">OK</MudButton>
+    <MudButton Color="Color.Primary" OnClick="CloseDialog">OK</MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
   [Parameter] public int InvoiceId { get; set; }
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-  [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
-  [Inject] private ILocalStorageService LocalStorage { get; set; } = default!;
 
-  private bool _loading;
-  private InvoiceDetailModel? Invoice;
+  private bool _loading = false;
+  private InvoiceDetailData? Invoice;
   private List<CourseItem> InvoiceItems = new();
-
   protected override async Task OnInitializedAsync()
   {
     await LoadInvoiceAsync();
@@ -71,11 +82,10 @@
   private async Task LoadInvoiceAsync()
   {
     _loading = true;
-
     try
     {
-      // ✅ Ambil token dari local storage
-      var token = await LocalStorage.GetItemAsStringAsync("authToken");
+      var token = await LocalStorage.GetItemAsync<string>("accessToken");
+
       if (string.IsNullOrEmpty(token))
       {
         Snackbar.Add("⚠️ Token tidak ditemukan, silakan login kembali.", Severity.Warning);
@@ -83,34 +93,37 @@
         return;
       }
 
-      // ✅ Gunakan token yang valid
-      Invoice = await InvoiceService.GetInvoiceDetailAsync(InvoiceId);
+      Console.WriteLine($"🪪 Token ditemukan: {token.Substring(0, Math.Min(token.Length, 15))}...");
 
+      Invoice = await InvoiceService.GetInvoiceDetailAsync(InvoiceId, token);
 
-      if (Invoice?.Courses == null)
-        Invoice!.Courses = new List<InvoiceCourseModel>();
-
-      if (Invoice.Courses.Any())
+      if (Invoice == null)
       {
-        InvoiceItems = Invoice.Courses.Select((c, i) => new CourseItem
-        {
-          No = i + 1,
-          CourseName = c.CourseName,
-          Type = c.Type,
-          Schedule = c.Schedule,
-          Price = c.Price
-        }).ToList();
+        Snackbar.Add("❌ Gagal memuat detail invoice.", Severity.Error);
+        _loading = false;
+        return;
       }
+
+      InvoiceItems = Invoice.ListCourse?.Select((c, i) => new CourseItem
+      {
+        No = i + 1,
+        CourseName = c.Name,
+        Type = c.Category,
+        Schedule = c.ScheduleDate,
+        Price = c.Price
+      }).ToList() ?? new List<CourseItem>();
+
     }
     catch (Exception ex)
     {
       Snackbar.Add($"❌ Error loading invoice: {ex.Message}", Severity.Error);
+      Console.WriteLine($"❌ Error detail: {ex}");
     }
 
     _loading = false;
   }
 
-  private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+  private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
 
   private class CourseItem
   {

@@ -128,8 +128,7 @@
 
         Console.WriteLine($"🔐 Token saved: {result.Data.AccessToken.Substring(0, 20)}...");
 
-        // 🔁 Arahkan ke halaman admin dashboard
-        Navigation.NavigateTo("/admin-dashboard", forceLoad: true);
+        Navigation.NavigateTo("/", forceLoad: true);
       }
       else
       {

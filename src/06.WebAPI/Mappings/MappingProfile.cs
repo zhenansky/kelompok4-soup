@@ -30,6 +30,7 @@ namespace MyApp.WebAPI.Mappings
 
             // === Pemetaan untuk Category (READ, CREATE, UPDATE) ===
             CreateMap<Category, CategoryDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.CategoryId))
                 .ForMember(dest => dest.MenuCourseCount, opt => opt.MapFrom(src => src.MenuCourses.Count));
             CreateMap<CreateCategoryDto, Category>();
             CreateMap<UpdateCategoryDto, Category>();
@@ -42,7 +43,8 @@ namespace MyApp.WebAPI.Mappings
             CreateMap<UpdateMenuCourseDto, MenuCourse>();
 
             // === Pemetaan untuk Schedule ===
-            CreateMap<Schedule, ScheduleDto>();
+            CreateMap<Schedule, ScheduleDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ScheduleId));
             CreateMap<CreateScheduleDto, Schedule>();
             CreateMap<UpdateScheduleDto, Schedule>();
 

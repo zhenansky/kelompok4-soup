@@ -57,36 +57,4 @@ namespace MyApp.BlazorUI.Models
         public string Email { get; set; } = string.Empty;
     }
 
-    public class InvoiceDetailModel
-    {
-        [JsonPropertyName("invoiceId")]
-        public int InvoiceId { get; set; }
-
-        [JsonPropertyName("noInvoice")]
-        public string NoInvoice { get; set; } = string.Empty;
-
-        [JsonPropertyName("date")]
-        public DateTime Date { get; set; }
-
-        [JsonPropertyName("totalPrice")]
-        public decimal TotalPrice { get; set; }
-
-        [JsonPropertyName("listCourse")]
-        public List<InvoiceCourseModel> Courses { get; set; } = new();
-    }
-
-    public class InvoiceCourseModel
-    {
-        [JsonPropertyName("name")]
-        public string CourseName { get; set; } = string.Empty;
-
-        [JsonPropertyName("category")]
-        public string Type { get; set; } = string.Empty;
-
-        [JsonPropertyName("scheduleDate")]
-        public DateTime Schedule { get; set; }
-
-        [JsonPropertyName("price")]
-        public decimal Price { get; set; }
-    }
 }
