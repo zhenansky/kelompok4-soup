@@ -8,24 +8,25 @@
     <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
       <MudPaper Elevation="0" Class="d-flex flex-column gap-6">
 
-        <MudTextField T="string" @bind-Value="User.Name" Placeholder="Name" Variant="Variant.Outlined" Required="true"
-          RequiredError="Name is required!" For="@(() => User.Name)" Style="height: 2rem;" />
+       <MudTextField T="string" @bind-Value="editUser.Name" Placeholder="Name" Variant="Variant.Outlined" Required="true"
+  RequiredError="Name is required!" For="@(() => editUser.Name)" Style="height: 2rem;" />
 
-        <MudTextField T="string" @bind-Value="User.Email" Placeholder="Email" Variant="Variant.Outlined"
-          InputType="InputType.Email" Required="true" RequiredError="Email is required!" Validation="ValidateEmail"
-          For="@(() => User.Email)" Style="height: 2rem;" />
+<MudTextField T="string" @bind-Value="editUser.Email" Placeholder="Email" Variant="Variant.Outlined"
+  InputType="InputType.Email" Required="true" RequiredError="Email is required!" Validation="ValidateEmail"
+  For="@(() => editUser.Email)" Style="height: 2rem;" />
 
-        <MudText>Role:</MudText>
-        <MudRadioGroup @bind-Value="User.Role" required For="@(() => User.Role)">
-          <MudRadio Value="@UserRole.Admin" Color="Color.Warning">Admin</MudRadio>
-          <MudRadio Value="@UserRole.User" Color="Color.Warning">User</MudRadio>
-        </MudRadioGroup>
+<MudText>Role:</MudText>
+<MudRadioGroup @bind-Value="editUser.Role" required For="@(() => editUser.Role)">
+  <MudRadio Value="@UserRole.Admin" Color="Color.Warning">Admin</MudRadio>
+  <MudRadio Value="@UserRole.User" Color="Color.Warning">User</MudRadio>
+</MudRadioGroup>
 
-        <MudText>Status:</MudText>
-        <MudRadioGroup @bind-Value="User.Status" required For="@(() => User.Status)">
-          <MudRadio Value="@UserStatus.Active" Color="Color.Success">Active</MudRadio>
-          <MudRadio Value="@UserStatus.Inactive" Color="Color.Error">Inactive</MudRadio>
-        </MudRadioGroup>
+<MudText>Status:</MudText>
+<MudRadioGroup @bind-Value="editUser.Status" required For="@(() => editUser.Status)">
+  <MudRadio Value="@UserStatus.Active" Color="Color.Success">Active</MudRadio>
+  <MudRadio Value="@UserStatus.Inactive" Color="Color.Error">Inactive</MudRadio>
+</MudRadioGroup>
+
 
         @if (!string.IsNullOrEmpty(userError))
         {
@@ -53,37 +54,58 @@
   private MudForm? form;
   private string userError = string.Empty;
 
+  // 🔹 Buat salinan data agar tidak kosong
+  private UserModel editUser = new();
+
+  protected override void OnInitialized()
+  {
+      editUser = new UserModel
+      {
+          Id = User.Id,
+          Name = User.Name,
+          Email = User.Email,
+          Role = User.Role,
+          Status = User.Status
+      };
+  }
+
   private void Cancel() => MudDialog.Cancel();
 
   private async Task Submit()
   {
-    form?.Validate();
-    if (!success) return;
+      await form.Validate();
 
-    try
-    {
-      bool result = await UserService.UpdateUserAsync(User);
-      if (result)
+      if (!success)
+          return;
+
+      Console.WriteLine($"🟢 Payload: Name={editUser.Name}, Email={editUser.Email}, Role={editUser.Role}, Status={editUser.Status}");
+
+      try
       {
-        MudDialog.Close(DialogResult.Ok(true));
+          bool result = await UserService.UpdateUserAsync(editUser);
+          if (result)
+          {
+             MudDialog.Close(DialogResult.Ok(editUser));
+          }
+          else
+          {
+              userError = "Gagal memperbarui user!";
+          }
       }
-      else
+      catch (Exception ex)
       {
-        userError = "Gagal memperbarui user!";
+          userError = $"Error: {ex.Message}";
       }
-    }
-    catch (Exception ex)
-    {
-      userError = $"Error: {ex.Message}";
-    }
+
+      
   }
 
   private string ValidateEmail(string value)
   {
-    if (string.IsNullOrWhiteSpace(value))
-      return "Email is required!";
-    if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-      return "Invalid email format!";
-    return string.Empty;
+      if (string.IsNullOrWhiteSpace(value))
+          return "Email is required!";
+      if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+          return "Invalid email format!";
+      return string.Empty;
   }
 }

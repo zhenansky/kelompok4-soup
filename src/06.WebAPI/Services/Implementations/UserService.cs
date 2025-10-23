@@ -117,6 +117,7 @@ namespace MyApp.WebAPI.Services.Implementations
         // ======================
         // UPDATE USER
         // ======================
+        // --- UPDATE USER ---
         public async Task<object> UpdateUserAsync(int id, UpdateUserRequest request)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
@@ -131,27 +132,45 @@ namespace MyApp.WebAPI.Services.Implementations
             if (existingUser != null && existingUser.Id != user.Id)
                 return new { success = false, message = "Email sudah digunakan oleh user lain", timestamp = DateTime.UtcNow };
 
+            // 🔹 Update basic info
             user.Name = request.Name;
             user.Email = newEmail;
             user.UserName = newEmail;
-            user.Status = request.Status; // ✅ gunakan enum dari DTO
+            user.Status = request.Status;
             user.UpdatedAt = DateTime.UtcNow;
 
+            // 🔹 Update ke database
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
                 return new { success = false, message = "Gagal memperbarui user", error = result.Errors.Select(e => e.Description), timestamp = DateTime.UtcNow };
 
+            // 🔹 Update Role (penting)
             var roles = await _userManager.GetRolesAsync(user);
-            var role = roles.FirstOrDefault() ?? "User";
+            var oldRole = roles.FirstOrDefault();
+
+            if (oldRole != request.Role)
+            {
+                if (!string.IsNullOrEmpty(oldRole))
+                    await _userManager.RemoveFromRoleAsync(user, oldRole);
+
+                if (!await _roleManager.RoleExistsAsync(request.Role))
+                    await _roleManager.CreateAsync(new IdentityRole<int>(request.Role));
+
+                await _userManager.AddToRoleAsync(user, request.Role);
+            }
+
+            var newRoles = await _userManager.GetRolesAsync(user);
+            var finalRole = newRoles.FirstOrDefault() ?? "User";
 
             return new
             {
                 success = true,
                 message = "User berhasil diperbarui",
-                data = new { user = UserResponse.FromEntity(user, role) },
+                data = new { user = UserResponse.FromEntity(user, finalRole) },
                 timestamp = DateTime.UtcNow
             };
         }
+
 
         // ======================
         // DELETE USER

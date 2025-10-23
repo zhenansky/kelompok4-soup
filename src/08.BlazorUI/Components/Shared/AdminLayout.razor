@@ -1,5 +1,15 @@
+@using MyApp.BlazorUI.Services
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Authorization
+@using MyApp.BlazorUI.Services.Interfaces
+@using MyApp.BlazorUI.DTOs.Auth
+@using Blazored.LocalStorage;
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
 
 <MudThemeProvider Theme="CustomTheme" />
 <MudPopoverProvider />
@@ -48,12 +58,11 @@
         <MudText Class="d-flex justify-center" Style="width: 100%;" Typo="Typo.body1">Action Menu</MudText>
       </MudDrawerHeader>
 
-      <MudLink Href="/login" Class="nav-link">
-        <MudButton Class="nav-btn">
-          <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
-          <MudText Class="nav-text">Logout</MudText>
-        </MudButton>
-      </MudLink>
+      <!-- PENTING: gunakan OnClick pada button, bukan Href pada link -->
+      <MudButton Class="nav-btn" OnClick="Logout">
+        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+        <MudText Class="nav-text">Logout</MudText>
+      </MudButton>
     </MudNavMenu>
   </MudDrawer>
 
@@ -81,40 +90,40 @@
       }
     }
   };
+
+  private async Task Logout()
+  {
+    try
+    {
+      var result = await AuthService.LogoutAsync();
+      if (result != null && result.Success)
+      {
+        Snackbar.Add("Berhasil logout!", Severity.Success);
+
+        // Hapus token local
+        await _localStorage.RemoveItemAsync("authToken");
+
+        // Refresh auth state via CustomAuthStateProvider jika tersedia
+        if (AuthStateProvider is CustomAuthStateProvider customProvider)
+        {
+          // Hapus token local
+          await _localStorage.RemoveItemAsync("accessToken");
+
+          // Update auth state
+          customProvider.NotifyUserLogout();
+        }
+
+        // Arahkan ke halaman login
+        Navigation.NavigateTo("/login", forceLoad: true);
+      }
+      else
+      {
+        Snackbar.Add(result?.Message ?? "Gagal logout!", Severity.Error);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+    }
+  }
 }
-
-<style>
-  .main {
-    height: 100vh;
-    padding: 6rem 2rem;
-    background: rgb(234, 234, 234);
-  }
-
-  .btn {
-    display: flex;
-    justify-content: center;
-  }
-
-  .nav-link {
-    text-decoration: none !important;
-  }
-
-  .nav-btn {
-    width: 100%;
-    padding: 0.7rem;
-    display: flex;
-    justify-content: start;
-    color: #5b4947;
-    border-radius: 0.5rem;
-  }
-
-  .nav-text {
-    font-size: 16px;
-    font-weight: 500;
-    margin: 0 1rem;
-  }
-
-  .line {
-    border: 1px solid black;
-  }
-</style>

@@ -1,6 +1,5 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using Microsoft.Extensions.Configuration;
 using MyApp.BlazorUI.Components.Models;
 
 namespace MyApp.BlazorUI.Services
@@ -8,15 +7,13 @@ namespace MyApp.BlazorUI.Services
     public class UserService
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _config;
 
-        public UserService(HttpClient httpClient, IConfiguration config)
+        public UserService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _config = config;
         }
 
-        // Generic API Response
+        // --- Generic API response wrapper ---
         public class ApiResponse<T>
         {
             public bool Success { get; set; }
@@ -24,7 +21,7 @@ namespace MyApp.BlazorUI.Services
             public T? Data { get; set; }
         }
 
-        // Data untuk list user
+        // --- Data paging wrapper (optional) ---
         public class UserData
         {
             public int Total { get; set; }
@@ -33,13 +30,13 @@ namespace MyApp.BlazorUI.Services
             public List<UserModel> Users { get; set; } = new();
         }
 
-        // Ambil semua user
+        // --- GET USERS ---
         public async Task<List<UserModel>> GetUsersAsync()
         {
             try
             {
-                var baseUrl = _config["ApiBaseUrl"];
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<UserData>>($"{baseUrl}/users");
+                Console.WriteLine("📡 Fetching: api/Users");
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<UserData>>("api/Users");
                 return response?.Data?.Users ?? new List<UserModel>();
             }
             catch (Exception ex)
@@ -49,18 +46,25 @@ namespace MyApp.BlazorUI.Services
             }
         }
 
-        // Tambah user
+        // --- CREATE USER ---
         public async Task<bool> CreateUserAsync(UserModel user)
         {
             try
             {
-                var baseUrl = _config["ApiBaseUrl"];
-                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/users", user);
+                var createDto = new
+                {
+                    user.Name,
+                    user.Email,
+                    user.Password,
+                    Role = user.Role.ToString(),
+                    Status = (int)user.Status
+                };
 
-                if (!response.IsSuccessStatusCode) return false;
+                var response = await _httpClient.PostAsJsonAsync("api/Users", createDto);
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"🔵 Create response: {content}");
 
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<UserData>>();
-                return result?.Success ?? false;
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
@@ -69,23 +73,27 @@ namespace MyApp.BlazorUI.Services
             }
         }
 
-        // Update user
+        // --- UPDATE USER ---
         public async Task<bool> UpdateUserAsync(UserModel user)
         {
             try
             {
-                Console.WriteLine($"🟡 Attempting update user {user.Id} status: {user.Status}");
-                var baseUrl = _config["ApiBaseUrl"];
-                var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/users/{user.Id}", user);
+                var updateDto = new
+                {
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role.ToString(), // pastikan kirim string seperti "Admin"
+                    Status = user.Status         // enum tetap boleh
+                };
 
-                Console.WriteLine($"🟢 Response: {response.StatusCode}");
+                var response = await _httpClient.PutAsJsonAsync($"api/Users/{user.Id}", updateDto);
                 var content = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"🔵 Response body: {content}");
 
-                if (!response.IsSuccessStatusCode) return false;
+                var json = System.Text.Json.JsonSerializer.Serialize(updateDto);
+                Console.WriteLine($"🟢 Payload JSON: {json}");
+                Console.WriteLine($"🔵 Update response: {content}");
 
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<UserData>>();
-                return result?.Success ?? false;
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
@@ -94,18 +102,17 @@ namespace MyApp.BlazorUI.Services
             }
         }
 
-        // Delete user
+
+        // --- DELETE USER ---
         public async Task<bool> DeleteUserAsync(int id)
         {
             try
             {
-                var baseUrl = _config["ApiBaseUrl"];
-                var response = await _httpClient.DeleteAsync($"{baseUrl}/users/{id}");
+                var response = await _httpClient.DeleteAsync($"api/Users/{id}");
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"🔵 Delete response: {content}");
 
-                if (!response.IsSuccessStatusCode) return false;
-
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<UserData>>();
-                return result?.Success ?? false;
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {

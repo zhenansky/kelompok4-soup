@@ -4,8 +4,17 @@ using MyApp.BlazorUI.Services;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using MyApp.BlazorUI.Services.Interfaces;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+  options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+  options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+  options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // Add Razor Components and MudBlazor
 builder.Services.AddRazorComponents()
@@ -46,6 +55,17 @@ builder.Services.AddCascadingAuthenticationState();
 
 // Register AuthTokenHandler
 builder.Services.AddTransient<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<UserService>(client =>
+{
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
+      ?? "http://localhost:5099/");
+});
+builder.Services.AddHttpClient<PaymentService>(client =>
+{
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
+      ?? "http://localhost:5099/");
+});
 
 // ✅ HttpClient untuk AuthClient (pakai token)
 builder.Services.AddHttpClient<IAuthClient, AuthClient>(client =>

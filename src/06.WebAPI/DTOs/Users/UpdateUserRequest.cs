@@ -12,6 +12,9 @@ namespace MyApp.WebAPI.DTO.Users
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
+        [Required]
+        public string Role { get; set; } = string.Empty;
+
         public UserStatus Status { get; set; } = UserStatus.Active;
     }
 }

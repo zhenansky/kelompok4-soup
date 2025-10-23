@@ -120,20 +120,19 @@
     var dialogReference = DialogService.Show<EditUserDialog>("Edit User", parameters, options);
     var result = await dialogReference.Result; // tunggu dialog selesai
 
-    if (result?.Data is true) // jika submit berhasil
+    if (result?.Data is UserModel updatedUser)
     {
-      // Update user secara lokal agar UI langsung berubah
-      var editedUser = Users.FirstOrDefault(u => u.Id == user.Id);
-      if (editedUser != null)
+      var existing = Users.FirstOrDefault(u => u.Id == updatedUser.Id);
+      if (existing != null)
       {
-        editedUser.Name = user.Name;
-        editedUser.Email = user.Email;
-        editedUser.Role = user.Role;
-        editedUser.Status = user.Status;
+        existing.Name = updatedUser.Name;
+        existing.Email = updatedUser.Email;
+        existing.Role = updatedUser.Role;
+        existing.Status = updatedUser.Status;
       }
 
       Snackbar.Add("User berhasil diupdate!", Severity.Success);
-      StateHasChanged(); // refresh UI
+      StateHasChanged();
     }
   }
 
