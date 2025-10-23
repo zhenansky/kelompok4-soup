@@ -1,26 +1,55 @@
-using System.Collections.Generic;
+using MyApp.BlazorUI.DTOs; // Pastikan namespace DTO benar
 
 namespace MyApp.BlazorUI.Services
 {
-    // Minimal cart service used by the Blazor UI. Kept intentionally small to avoid
-    // coupling with other projects; expand later if the app needs shared cart state.
+    // Service untuk mengelola state keranjang
     public class CartService
     {
-        public List<object> Items { get; } = new();
+        // Daftar item di keranjang (disimpan di memori selama aplikasi berjalan)
+        private List<CartItem> _items = new List<CartItem>();
 
-        public void Add(object item)
+        // Event agar komponen lain tahu jika keranjang berubah
+        public event Action? OnChange;
+
+        // Mengambil semua item
+        public List<CartItem> GetItems() => _items;
+
+        // Menambah item baru
+        public void AddItem(CartItem item)
         {
-            Items.Add(item);
+            // Cek apakah item (course + schedule) sudah ada
+            var existingItem = _items.FirstOrDefault(i =>
+                i.MenuCourseId == item.MenuCourseId && i.ScheduleId == item.ScheduleId);
+
+            if (existingItem == null)
+            {
+                _items.Add(item);
+                NotifyStateChanged(); // Beri tahu komponen lain
+            }
+            // Jika sudah ada, kita tidak melakukan apa-apa (atau bisa tambah kuantitas nanti)
         }
 
-        public void Remove(object item)
+        // Menghapus item
+        public void RemoveItem(CartItem itemToRemove)
         {
-            Items.Remove(item);
+            var item = _items.FirstOrDefault(i =>
+                i.MenuCourseId == itemToRemove.MenuCourseId && i.ScheduleId == itemToRemove.ScheduleId);
+
+            if (item != null)
+            {
+                _items.Remove(item);
+                NotifyStateChanged(); // Beri tahu komponen lain
+            }
         }
 
-        public void Clear()
+        // Menghapus semua item
+        public void ClearCart()
         {
-            Items.Clear();
+            _items.Clear();
+            NotifyStateChanged();
         }
+
+        // Helper untuk memicu event OnChange
+        private void NotifyStateChanged() => OnChange?.Invoke();
     }
 }

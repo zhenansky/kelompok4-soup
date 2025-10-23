@@ -4,6 +4,7 @@
 @using System.Globalization
 @using MyApp.BlazorUI.DTOs
 @inject IConfiguration Configuration
+@inject NavigationManager NavManager
 
 <PageTitle>Lending Pages</PageTitle>
 
@@ -28,13 +29,11 @@
         {
             <MudItem xs="12" sm="6" md="4">
                 <MudCard Class="stat-card h-100">
-
                     <MudCardContent Class="stat-card-content">
                         <MudText Typo="Typo.h4" Color="Color.Warning" Class="font-weight-bold">@stat.Number</MudText>
                         <MudText Typo="Typo.body2">@stat.Description</MudText>
                     </MudCardContent>
                 </MudCard>
-
             </MudItem>
         }
     </MudGrid>
@@ -58,8 +57,8 @@
             @foreach (FoodItem item in Foods.Take(6))
             {
                 <MudItem xs="12" sm="6" md="4">
-
-                    <MudCard Elevation="0" @onclick="() => OnCardClick(item)">
+                    @* UBAH OnCardClick UNTUK MENGGUNAKAN ID *@
+                    <MudCard Elevation="0" @onclick="() => OnCardClick(item)" Style="cursor:pointer;">
                         <MudCardMedia Image="@item.Image" Height="180" Alt="@item.Title" />
                         <MudCardContent>
                             <MudText Typo="Typo.caption" Class="text-grey">@item.Category</MudText>
@@ -67,7 +66,6 @@
                             <MudDivider Class="my-3" />
                             <MudText Typo="Typo.body2" Color="Color.Warning" Class="font-weight-bold">@item.Price</MudText>
                         </MudCardContent>
-
                     </MudCard>
                 </MudItem>
             }
@@ -110,12 +108,10 @@
             @foreach (FoodType food in FoodTypes)
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
-
-                    <MudCard Class="" Elevation="0">
+                    <MudCard Class="" Elevation="0" @onclick="() => OnCategoryClick(food)" Style="cursor:pointer;">
                         <MudCardMedia Image="@food.Image" Height="120" Alt="@food.Name" />
                         <MudCardContent>
                             <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-4" Style="font-size:24px;">
-
                                 @food.Name
                             </MudText>
                         </MudCardContent>
@@ -127,53 +123,53 @@
 </MudContainer>
 
 @code {
-    public record FoodItem(string Image, string Category, string Title, string Price);
+    public record FoodItem(int Id, string Image, string Category, string Title, string Price);
+
     public record FoodType(string Image, string Name);
     public record StatItem(string Number, string Description);
 
+    @* 2. UBAH METODE INI *@
     private void OnCardClick(FoodItem item)
     {
-        // Navigation logic
+        NavManager.NavigateTo($"/menu/detail/{item.Id}");
+    }
+    private void OnCategoryClick(FoodType food)
+    {
+        NavManager.NavigateTo($"/menu/{food.Name}");
     }
 
     public List<FoodItem> Foods = new List<FoodItem>();
     public List<FoodType> FoodTypes = new List<FoodType>();
-
     private List<StatItem> stats = new List<StatItem>()
 {
 new StatItem(Number: "200+", Description: "Various cuisines available in professional class"),
 new StatItem(Number: "50+", Description: "A chef who is reliable and has his own characteristics in cooking"),
 new StatItem(Number: "30+", Description: "Cooperate with trusted and upscale restaurants")
 };
-
     private CultureInfo idCulture = new CultureInfo("id-ID");
     private string _apiBaseUrl = string.Empty;
-
     protected override async Task OnInitializedAsync()
     {
         _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
         try
         {
-            // 1. Fetch Categories (FoodTypes)
             var categoryResponse = await Http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>("api/categories");
             if (categoryResponse?.Success == true && categoryResponse.Data != null)
             {
                 FoodTypes = categoryResponse.Data
                 .Select(dto => new FoodType(
-                // UBAH BARIS INI
                 string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}",
                 dto.Name
                 ))
                 .ToList();
             }
 
-            // 2. Fetch Menu Courses (Foods)
             var courseResponse = await Http.GetFromJsonAsync<ApiResponse<List<MenuCourseDto>>>("api/menucourses");
             if (courseResponse?.Success == true && courseResponse.Data != null)
             {
                 Foods = courseResponse.Data
                 .Select(dto => new FoodItem(
-                // UBAH BARIS INI
+                dto.Id,
                 string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}",
                 dto.CategoryName,
                 dto.Name,

@@ -1,65 +1,139 @@
-@page "/menu"
+@page "/menu/{CategoryName}"
+
 @using MudBlazor
+@using MyApp.BlazorUI.DTOs
+@using System.Globalization
+@inject HttpClient Http
+@inject IConfiguration Configuration
+@inject NavigationManager NavManager
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-0">
 
-    <!-- Hero -->
     <MudItem Style="width:100%;" Class="mb-6" Elevation="0">
-        <MudImage Src="/images/hero.svg" Alt="Asian Food" Class="object-contain" Style="height:auto; width:100%" />
+        <MudImage Src="/images/hero.svg" Alt="@($"{CategoryName} Food")" Class="object-contain"
+            Style="height:auto; width:100%" />
     </MudItem>
 
-    <!-- Intro Section -->
     <MudPaper Elevation="1" Class="pa-4 pa-md-10 mb-8">
-        <MudText Typo="Typo.h5" Class="fw-bold">Asian</MudText>
+        <MudText Typo="Typo.h5" Class="fw-bold">@CategoryName</MudText>
         <MudText Typo="Typo.body1" Class="mt-2 text-secondary">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-            et dolore magna aliqua. Ut enim ad minim veniam...
+            @categoryDescription
         </MudText>
     </MudPaper>
 
-    <!-- Menu Cards -->
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="px-3 my-20 pb-10">
         <MudText Typo="Typo.h5" Align="Align.Center" Class="fw-semibold mt-6 mb-6" Style="color:#5B4947;">
             Another menu in this class
         </MudText>
 
-        <MudGrid Class="my-20" Gutter="3">
-            @foreach (var item in MenuItems)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="4">
-                    <MudCard Class="h-100" Elevation="0">
-                        <MudCardMedia Image="@item.ImageUrl" Height="180" Class="object-cover" />
-                        <MudCardContent>
-                            <MudText Typo="Typo.caption">@item.Category</MudText>
-                            <MudText Typo="Typo.h6">@item.Name</MudText>
-                            <MudText Class="mt-4" Style="color:#FABC1D;">@item.Price</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            }
-        </MudGrid>
+        @if (isLoading)
+        {
+            <MudGrid Justify="Justify.Center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </MudGrid>
+        }
+        else if (!FilteredMenuItems.Any())
+        {
+            <MudGrid Justify="Justify.Center">
+                <MudText>Tidak ada menu yang ditemukan untuk kategori "@CategoryName".</MudText>
+            </MudGrid>
+        }
+        else
+        {
+            <MudGrid Class="my-20" Gutter="3">
+                @foreach (var item in FilteredMenuItems)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="4">
+                        @* 1. TAMBAHKAN OnClick DI SINI *@
+                        <MudCard Class="h-100" Elevation="0" @onclick="() => OnMenuClick(item)" Style="cursor:pointer;">
+                            <MudCardMedia Image="@item.ImageUrl" Height="180" Class="object-cover" />
+                            <MudCardContent>
+                                <MudText Typo="Typo.caption">@item.Category</MudText>
+                                <MudText Typo="Typo.h6">@item.Name</MudText>
+                                <MudText Class="mt-4" Style="color:#FABC1D;">@item.Price</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     </MudContainer>
-
 </MudContainer>
 
 @code {
-    public record Menu(string Category, string Name, string Price, string ImageUrl);
+    [Parameter]
+    public string CategoryName { get; set; }
 
-    List<Menu> MenuItems = new()
-{
-new ("Asian", "Sushi Salmon with Mentai", "IDR 200.000", "images/menu/sushi.svg"),
-new ("Asian", "Ichiraku Ramen", "IDR 350.000", "images/menu/ramen.svg"),
-new ("Asian", "Beef Rendang Sapi", "IDR 200.000", "images/menu/rendang.svg"),
-new ("Asian", "Pempek Palembang", "IDR 60.000", "images/menu/pempek.svg"),
-new ("Asian", "Soto Betawi Limau Kast", "IDR 120.000", "images/menu/soto.svg"),
-new ("Asian", "Tom Yum Thailand", "IDR 450.000", "images/menu/tomyum.svg"),
-new ("Asian", "Takoyaki Deluxe", "IDR 150.000", "images/menu/takoyaki.svg"),
-new ("Asian", "Jajangmeyon", "IDR 150.000", "images/menu/jajangmeyon.svg"),
-new ("Asian", "Sate Padang", "IDR 300.000", "images/menu/sate.svg"),
-};
+    @* 2. UBAH RECORD INI UNTUK MENYIMPAN ID *@
+    public record Menu(int Id, string Category, string Name, string Price, string ImageUrl);
+    public List<Menu> FilteredMenuItems = new List<Menu>();
+    private bool isLoading = true;
+    private CultureInfo idCulture = new CultureInfo("id-ID");
+    private string _apiBaseUrl = string.Empty;
+    private string? categoryDescription = "Memuat deskripsi...";
 
-    private List<string> ProdukList = new()
-{
-"Electric","LCOC","Offroad","SUV","Heartback","MPV","Sedan","Truck"
-};
+    @* 3. TAMBAHKAN METODE NAVIGASI INI *@
+    private void OnMenuClick(Menu item)
+    {
+        NavManager.NavigateTo($"/menu/detail/{item.Id}");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
+        FilteredMenuItems.Clear();
+        categoryDescription = "";
+
+        if (string.IsNullOrEmpty(CategoryName))
+        {
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            // === FETCH 1: Get Menu Courses ===
+            var courseResponse = await Http.GetFromJsonAsync<ApiResponse<List<MenuCourseDto>>>("api/menucourses");
+            if (courseResponse?.Success == true && courseResponse.Data != null)
+            {
+                @* 4. UBAH LOGIKA .Select() INI *@
+                FilteredMenuItems = courseResponse.Data
+                .Where(dto => dto.CategoryName.Equals(CategoryName, StringComparison.OrdinalIgnoreCase))
+                .Select(dto => new Menu(
+                dto.Id, // <-- Tambahkan dto.Id
+                dto.CategoryName,
+                dto.Name,
+                "IDR " + dto.Price.ToString("N0", idCulture),
+                string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}"
+                ))
+                .ToList();
+            }
+
+            // === FETCH 2: Get Category Description ===
+            var categoryResponse = await Http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>("api/categories");
+            if (categoryResponse?.Success == true && categoryResponse.Data != null)
+            {
+                var matchingCategory = categoryResponse.Data
+                .FirstOrDefault(cat => cat.Name.Equals(CategoryName, StringComparison.OrdinalIgnoreCase));
+                if (matchingCategory != null)
+                {
+                    categoryDescription = matchingCategory.Description;
+                }
+                else
+                {
+                    categoryDescription = $"Deskripsi untuk {CategoryName} tidak ditemukan.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Gagal memuat data menu untuk kategori {CategoryName}: {ex.Message}");
+            categoryDescription = "Gagal memuat deskripsi.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 }

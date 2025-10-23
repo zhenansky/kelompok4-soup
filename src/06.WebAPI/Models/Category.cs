@@ -13,6 +13,9 @@ namespace MyApp.WebAPI.Models
     [MaxLength(255)]
     public string? Image { get; set; }
 
+    [MaxLength(1000)]
+    public string? Description { get; set; }
+
     public virtual ICollection<MenuCourse> MenuCourses { get; set; } = new List<MenuCourse>();
   }
 }
