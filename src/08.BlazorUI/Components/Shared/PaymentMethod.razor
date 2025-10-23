@@ -1,25 +1,46 @@
 @using MudBlazor
 @using MyApp.BlazorUI.Components.Models
+@using MyApp.BlazorUI.DTOs
+@inject HttpClient Http
+@inject HttpClient Http
 
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Select Payment Method</MudText>
   </TitleContent>
   <DialogContent>
-    <MudStack Spacing="2">
-      @foreach (var method in PaymentMethods)
-      {
-        <MudItem>
-          <MudPaper Elevation="0"
-                    Class=@($"d-flex justify-start gap-6 {(SelectedMethod == method.Id ? "selected-method" : "")}")>
-            <MudButton class="d-flex justify-start" Style="width: 100%;" OnClick="@(() => SetSelectedMethod(method.Id))">
-              <MudImage Src="@method.Logo" Class="mr-4" Width="40" Height="40" />
-              <MudText Style="font-weight: 500; font-size: 18px;">@method.Name</MudText>
-            </MudButton>
-          </MudPaper>
-        </MudItem>
-      }
-    </MudStack>
+    
+    @* --- KONTEN DIUBAH UNTUK MENANGANI LOADING & ERROR --- *@
+    @if (_isLoading)
+    {
+        <MudGrid Justify="Justify.Center" Class="pa-10">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </MudGrid>
+    }
+    else if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <MudText Color="Color.Error" Align="Align.Center">@_errorMessage</MudText>
+    }
+    else
+    {
+        <MudStack Spacing="2">
+            @* Loop diubah untuk menggunakan list baru 'ApiPaymentMethods' *@
+            @foreach (var method in ApiPaymentMethods)
+            {
+                <MudItem>
+                    <MudPaper Elevation="0"
+                              Class=@($"d-flex justify-start gap-6 {(SelectedMethod == method.Id ? "selected-method" : "")}")>
+                        <MudButton class="d-flex justify-start" Style="width: 100%;" OnClick="@(() => SetSelectedMethod(method.Id))">
+                            <MudImage Src="@method.Logo" Class="mr-4" Width="40" Height="40" />
+                            <MudText Style="font-weight: 500; font-size: 18px;">@method.Name</MudText>
+                        </MudButton>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudStack>
+    }
+    @* --- AKHIR PERUBAHAN KONTEN --- *@
+
   </DialogContent>
 
   <DialogActions>
@@ -29,7 +50,7 @@
     <MudButton Variant="Variant.Filled"
                OnClick="ConfirmPayNow"
                DropShadow="false"
-               Disabled="@(SelectedMethod is null)"
+               Disabled="@(SelectedMethod is null || _isLoading)" @* <-- Ditambahkan disable saat loading *@
                Class="button button-filled rounded-lg">
       Pay Now
     </MudButton>
@@ -41,16 +62,53 @@
 
   private int? SelectedMethod { get; set; }
 
-  private IEnumerable<PaymentModel> PaymentMethods = new List<PaymentModel>
+  // ==========================================================
+  // == PERUBAHAN: Mengambil data dari API ==
+  // ==========================================================
+
+  // 1. Variabel state baru
+  private List<PaymentModel> ApiPaymentMethods { get; set; } = new List<PaymentModel>();
+  private bool _isLoading = true;
+  private string? _errorMessage;
+
+  protected override async Task OnInitializedAsync()
   {
-      new PaymentModel { Id = 1, Name = "Dana", Logo = "/images/payment/Logo_DANA.svg", Status = PaymentStatus.Active },
-      new PaymentModel { Id = 2, Name = "Gopay", Logo = "/images/payment/Logo_GOPAY.svg", Status = PaymentStatus.Active },
-      new PaymentModel { Id = 3, Name = "BCA", Logo = "/images/payment/Logo_BCA.svg", Status = PaymentStatus.Active },
-      new PaymentModel { Id = 4, Name = "BRI", Logo = "/images/payment/Logo_BRI.svg", Status = PaymentStatus.Inactive },
-      new PaymentModel { Id = 5, Name = "Mandiri", Logo = "/images/payment/Logo_MANDIRI.svg", Status = PaymentStatus.Active },
-      new PaymentModel { Id = 6, Name = "OVO", Logo = "/images/payment/Logo_OVO.svg", Status = PaymentStatus.Active },
-      new PaymentModel { Id = 7, Name = "BNI", Logo = "/images/payment/Logo_BNI.svg", Status = PaymentStatus.Active }
-  };
+      _isLoading = true;
+      try
+      {
+          // Asumsi Anda memiliki model "ApiResponse<T>" yang sama dengan file lain
+          // Ganti "api/paymentmethods" dengan endpoint API Anda yang sebenarnya
+          var response = await Http.GetFromJsonAsync<ApiResponse<List<PaymentModel>>>("api/paymentmethods");
+
+          if (response?.Success == true && response.Data != null)
+          {
+              // Kita tetap filter berdasarkan status 'Active' seperti logika Anda sebelumnya
+              ApiPaymentMethods = response.Data.Where(p => p.Status == PaymentStatus.Active).ToList();
+
+              if (!ApiPaymentMethods.Any())
+              {
+                  _errorMessage = "Tidak ada metode pembayaran yang tersedia saat ini.";
+              }
+          }
+          else
+          {
+              _errorMessage = response?.Message ?? "Gagal memuat metode pembayaran.";
+          }
+      }
+      catch (Exception ex)
+      {
+          // Tangani error jika API tidak terjangkau
+          _errorMessage = $"Terjadi kesalahan koneksi: {ex.Message}";
+      }
+      finally
+      {
+          _isLoading = false;
+      }
+  }
+  
+  // ==========================================================
+  // == FUNGSI DI BAWAH INI TIDAK BERUBAH SAMA SEKALI ==
+  // ==========================================================
 
   private void SetSelectedMethod(int method) => SelectedMethod = method;
 
@@ -60,17 +118,17 @@
   {
       if (SelectedMethod is null)
       {
-          // kalau belum milih, tutup tanpa hasil
           MudDialogObj.Cancel();
           return;
       }
 
-      // kirim hasil (ID metode yang dipilih)
+      // Kirim hasil (ID metode yang dipilih) kembali ke CheckOut.razor
       MudDialogObj.Close(DialogResult.Ok(SelectedMethod.Value));
   }
 }
 
 <style>
+  /* Style Anda (tidak berubah) */
   .selected-method {
     background-color: #FABC1D;
   }

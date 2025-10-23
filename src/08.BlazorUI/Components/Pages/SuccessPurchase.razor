@@ -36,20 +36,30 @@
 </MudContainer>
 
 @code {
-  // Ganti dengan path gambar yang sesuai di proyek Anda
-  private const string LogoPath = "images/your-logo.png"; // Contoh: "/images/logo.svg"
-  private const string SuccessImagePath = "images/success-image.png"; // Contoh: "/images/success.svg"
+  // == PERUBAHAN: Menerima 'orderId' dari URL ==
+  [Parameter]
+  [SupplyParameterFromQuery]
+  public string? OrderId { get; set; }
+
+  // Konstanta yang tidak terpakai telah dihapus
 
   private void NavigateToHome()
   {
-    // Navigasi ke halaman utama
     NavigationManager.NavigateTo("/");
   }
 
   private void NavigateToInvoice()
   {
-    // Navigasi ke halaman invoice (contoh)
-    NavigationManager.NavigateTo("/invoice/123");
+    // == PERUBAHAN: Menggunakan OrderId yang dinamis ==
+    if (!string.IsNullOrEmpty(OrderId))
+    {
+      NavigationManager.NavigateTo($"/invoice/{OrderId}");
+    }
+    else
+    {
+      // Fallback jika OrderId tidak ada (meskipun seharusnya ada)
+      NavigationManager.NavigateTo("/");
+    }
   }
 }
 
@@ -59,7 +69,6 @@
     top: 24px;
     left: 32px;
     width: 120px;
-    /* Sesuaikan ukuran logo */
     height: auto;
   }
 

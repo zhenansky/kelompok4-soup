@@ -1,50 +1,67 @@
 @page "/checkout"
+
+@* == USING STATEMENTS == *@
+@using MudBlazor
+@using Microsoft.AspNetCore.Components
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+
+@* == INJECTS == *@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject MyApp.BlazorUI.Services.CartService CartService
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+@implements IDisposable
 
 <PageTitle>Checkout</PageTitle>
 
 <MudPaper Elevation="0" Class="pt-2" Style="min-height: 100%;">
   <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="py-4 px-10">
 
+    <MudText Typo="Typo.h6">Item Keranjang</MudText>
+
     <MudPaper Elevation="0" Class="d-flex align-center">
-      <MudCheckBox T="bool" Value="@SelectAll" ValueChanged="OnSelectAllChanged" Label=" Pilih Semua" />
+      <MudCheckBox T="bool" @bind-Value="SelectAll" @bind-Value:after="OnSelectAllChanged" Label=" Pilih Semua" />
     </MudPaper>
 
     <MudDivider Style="border-top: 2px solid rgba(0,0,0,0.77);" />
 
     <MudPaper Elevation="0" Class="pa-4" style="height: calc(100vh - 15rem); overflow: auto;">
-      @foreach (var item in CartItems)
+      @if (!CartItems.Any())
       {
-        <MudGrid Class="align-center" @key="item">
-
-          <MudItem xs="2" sm="1" md="1">
-            <MudCheckBox T="bool" Value="@item.Selected" For="@(() => item.Selected)"
-              ValueChanged="@(checkedValue => OnItemSelectionChanged(item, checkedValue))" />
-          </MudItem>
-
-          <MudItem xs="12" sm="4" md="2">
-            <MudImage Src="@item.ImageUrl" Alt="@item.Name" Fluid="true" Style="width: 12.5rem; height: 8.3rem;" />
-          </MudItem>
-
-          <MudItem xs="10" sm="6" md="8">
-            <div class="d-flex flex-column">
-              <MudText Typo="Typo.caption" style="color: #828282;">@item.Category</MudText>
-              <MudText Typo="Typo.h6" style="font-weight: 600;">@item.Name</MudText>
-              <MudText Typo="Typo.body2" Color="Color.Default">
-                Schedule: @item.Schedule.ToString("dddd, dd MMMM yyyy")
-              </MudText>
-              <MudText Typo="Typo.subtitle1" style="color: #FABC1D; font-weight: 500;">
-                IDR @item.Price.ToString("N2")
-              </MudText>
-            </div>
-          </MudItem>
-
-          <MudItem xs="2" sm="1" md="1" Class="d-flex justify-end align-center">
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveItem(item))" />
-          </MudItem>
-        </MudGrid>
-        <MudDivider Class="my-2" Style="border-top: 2px solid rgba(0,0,0,0.77);" />
+        <MudText Align="Align.Center" Class="mt-10">Keranjang Anda kosong.</MudText>
+      }
+      else
+      {
+        @foreach (var item in CartItems)
+        {
+          <MudGrid Class="align-center" @key="@(item.MenuCourseId + "-" + item.ScheduleId)">
+            <MudItem xs="2" sm="1" md="1">
+              <MudCheckBox T="bool" @bind-Value="item.Selected" @bind-Value:after="OnItemSelectionChanged" />
+            </MudItem>
+            <MudItem xs="12" sm="4" md="2">
+              <MudImage Src="@item.ImageUrl" Alt="@item.Name" Fluid="true" Style="width: 12.5rem; height: 8.3rem;" />
+            </MudItem>
+            <MudItem xs="10" sm="6" md="8">
+              <div class="d-flex flex-column">
+                <MudText Typo="Typo.caption" style="color: #828282;">@item.Category</MudText>
+                <MudText Typo="Typo.h6" style="font-weight: 600;">@item.Name</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">
+                  Schedule: @item.Schedule.ToString("dddd, dd MMMM yyyy")
+                </MudText>
+                <MudText Typo="Typo.subtitle1" style="color: #FABC1D; font-weight: 500;">
+                  IDR @item.Price.ToString("N0")
+                </MudText>
+              </div>
+            </MudItem>
+            <MudItem xs="2" sm="1" md="1" Class="d-flex justify-end align-center">
+              <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveItem(item))" />
+            </MudItem>
+          </MudGrid>
+          <MudDivider Class="my-2" Style="border-top: 2px solid rgba(0,0,0,0.77);" />
+        }
       }
     </MudPaper>
   </MudForm>
@@ -53,121 +70,180 @@
 
   <MudPaper Height="4rem" Elevation="0" Class="d-flex justify-between align-center px-10">
     <MudText Typo="Typo.subtitle1" Class="mr-4">Total Price</MudText>
-    <MudText Typo="Typo.h6" style="color: #FABC1D;">IDR @_totalPrice.ToString("N2")</MudText>
+    <MudText Typo="Typo.h6" style="color: #FABC1D;">IDR @_totalPrice.ToString("N0")</MudText>
     <MudSpacer />
-    <MudButton Variant="Variant.Filled" Class="button button-filled rounded-lg" OnClick="@OpenPayment">
-      Pay Now
+    <MudButton Variant="Variant.Filled" Class="button button-filled rounded-lg" OnClick="@ShowPaymentDialog"
+      Disabled="@(isProcessingPayment || _totalPrice <= 0)">
+      @if (isProcessingPayment)
+      {
+        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+        <text>Memproses...</text>
+      }
+      else
+      {
+        <text>Pay Now</text>
+      }
     </MudButton>
   </MudPaper>
 </MudPaper>
+
 
 @code {
   MudForm? form;
   bool success;
   string[] errors = { };
+  private bool isProcessingPayment = false;
+
+  // --- DTO (Data Transfer Object) untuk API Call ---
+  // Pastikan DTO ini menyertakan PaymentMethodId
+  public record CreateOrderDto(List<int> ScheduleIds, decimal TotalPrice, int PaymentMethodId);
+
+  // Pastikan DTO Respon dari API menyertakan OrderId
+  public record PaymentResponseDto(string OrderId, string PaymentToken, string PaymentUrl);
 
   private bool SelectAll;
-  private decimal _totalPrice => SelectedItems.Sum(i => i.Price);
+  private decimal _totalPrice => CartItems.Where(i => i.Selected).Sum(i => i.Price);
+  private List<CartItem> CartItems = new List<CartItem>();
 
-  private List<CartItem> CartItems = new()
-{
-new CartItem { Category="Asian", Name="Tom Yum Thailand", Schedule=new DateTime(2022,7,27), Price=450_000,
-ImageUrl="images/image11.svg"},
-new CartItem { Category="Asian", Name="Ichiraku Ramen", Schedule=new DateTime(2022,7,24), Price=300_000,
-ImageUrl="images/image10.svg"},
-new CartItem { Category="Eastern", Name="Italian Spaghetti Bolognese", Schedule=new DateTime(2022,7,25), Price=450_000,
-ImageUrl="images/image16.svg"},
-};
-
-  private List<CartItem> SelectedItems = new List<CartItem>();
-
-  private void OnSelectAllChanged(bool value)
+  protected override void OnInitialized()
   {
-    SelectAll = value;
-    foreach (var item in CartItems)
-    {
-      item.Selected = value;
-      if (value)
-      {
-        if (!SelectedItems.Contains(item))
-          SelectedItems.Add(item);
-      }
-      else
-      {
-        SelectedItems.Clear();
-      }
-    }
-    StateHasChanged();
+    LoadCartItems();
+    CartService.OnChange += HandleCartChange;
   }
 
-  private void OnItemSelectionChanged(CartItem item, bool isChecked)
+  private void LoadCartItems()
   {
-    item.Selected = isChecked;
-    if (isChecked)
-    {
-      if (!SelectedItems.Contains(item))
-        SelectedItems.Add(item);
-    }
-    else
-    {
-      SelectedItems.Remove(item);
-    }
+    CartItems = CartService.GetItems();
+    CalculateSelectAll();
+  }
 
-    SelectAll = CartItems.All(i => i.Selected);
-    StateHasChanged();
+  private void HandleCartChange()
+  {
+    LoadCartItems();
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void OnSelectAllChanged()
+  {
+    foreach (var item in CartItems)
+    {
+      item.Selected = SelectAll;
+    }
+  }
+
+  private void OnItemSelectionChanged()
+  {
+    CalculateSelectAll();
+  }
+
+  private void CalculateSelectAll()
+  {
+    SelectAll = CartItems.Any() && CartItems.All(i => i.Selected);
   }
 
   private void RemoveItem(CartItem item)
   {
-    CartItems.Remove(item);
-    SelectedItems.Remove(item);
-    SelectAll = CartItems.All(i => i.Selected);
-    StateHasChanged();
+    CartService.RemoveItem(item);
   }
 
-  private async Task OpenPayment()
+  // =============================================
+  // == LOGIKA PEMBAYARAN E-COMMERCE BARU ==
+  // =============================================
+
+  /**
+  * @brief Langkah 1: Buka dialog pemilihan metode pembayaran.
+*/
+  private async Task ShowPaymentDialog()
   {
+    // 1. Validasi Item Keranjang
     if (_totalPrice <= 0)
     {
       Snackbar.Add("Tidak ada item yang dipilih untuk dibayar.", Severity.Info);
       return;
     }
 
-    var options = new DialogOptions
-    {
-      CloseOnEscapeKey = true,
-      MaxWidth = MaxWidth.Small,
-      FullWidth = true
-    };
+    // 2. Buka Dialog
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+    var dialog = DialogService.Show<PaymentMethod>("Select Payment Method", options);
+    var result = await dialog.Result;
 
-    var dialogRef = await DialogService.ShowAsync<PaymentMethod>("Select Payment Method", options);
-    var result = await dialogRef.Result;
-
-    if (result != null && result.Data != null)
+    // 3. Cek hasil dialog
+    if (!result.Canceled && result.Data != null)
     {
-      var method = result.Data.ToString() ?? "(tidak diketahui)";
-      Snackbar.Add($"Membayar sebesar IDR {_totalPrice:N0} menggunakan {method}.", Severity.Success);
+      // Pengguna memilih metode, lanjutkan ke proses pembayaran
+      int selectedPaymentId = (int)result.Data;
+      await ProcessPayment(selectedPaymentId);
     }
     else
     {
+      // Pengguna menekan "Cancel"
       Snackbar.Add("Pembayaran dibatalkan.", Severity.Info);
     }
   }
 
-
-  public class CartItem
+  /**
+  * @brief Langkah 2: Proses pembayaran setelah metode dipilih.
+*/
+  private async Task ProcessPayment(int paymentMethodId)
   {
-    public int MSId { get; set; }
-    public string? Category { get; set; }
-    public string? Name { get; set; }
-    public DateTime Schedule { get; set; }
-    public decimal Price { get; set; }
-    public string? ImageUrl { get; set; }
-    public bool Selected { get; set; }
+    isProcessingPayment = true;
+    await InvokeAsync(StateHasChanged);
+
+    var selectedItems = CartItems.Where(item => item.Selected).ToList();
+    var selectedScheduleIds = selectedItems.Select(item => item.ScheduleId).ToList();
+
+    // 1. Buat Data Request untuk API
+    var createOrderRequest = new CreateOrderDto(
+    selectedScheduleIds,
+    _totalPrice,
+    paymentMethodId
+    );
+
+    // 2. Panggil API Backend
+    try
+    {
+      var response = await Http.PostAsJsonAsync("api/orders/create", createOrderRequest);
+
+      if (response.IsSuccessStatusCode)
+      {
+        // Asumsikan API mengembalikan OrderId
+        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponseDto>();
+        var newOrderId = paymentResponse?.OrderId ?? "unknown";
+
+        Snackbar.Add("Pesanan berhasil dibuat! (Simulasi)", Severity.Success);
+
+        // 3. Kosongkan keranjang (item yang sudah dibayar)
+        foreach (var item in selectedItems)
+        {
+          CartService.RemoveItem(item);
+        }
+
+        // 4. Arahkan ke Halaman Sukses dengan OrderId
+        NavManager.NavigateTo($"/purchase-success?orderId={newOrderId}");
+      }
+      else
+      {
+        Snackbar.Add("Gagal membuat pesanan di server. Coba lagi.", Severity.Error);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      isProcessingPayment = false;
+    }
+  }
+
+  public void Dispose()
+  {
+    CartService.OnChange -= HandleCartChange;
   }
 }
 
 <style>
+  /* Style Anda sebelumnya */
   body {
     height: 100vh;
   }
@@ -178,7 +254,7 @@ ImageUrl="images/image16.svg"},
 
   .sticky-footer {
     position: sticky;
-    bottom: 100;
+    bottom: 0;
     z-index: 100;
   }
 </style>

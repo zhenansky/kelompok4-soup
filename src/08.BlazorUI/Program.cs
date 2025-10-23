@@ -71,6 +71,7 @@ builder.Services.AddHttpClient<DashboardService>(client =>
 
 // Register other services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<MyApp.BlazorUI.Services.CartService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 // Build the app

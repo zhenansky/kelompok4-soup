@@ -4,7 +4,7 @@ namespace MyApp.BlazorUI.Components.Models
 {
   public class PaymentModel
   {
-    [JsonPropertyName("paymentMethodId")] // ✅ samakan dengan JSON
+    [JsonPropertyName("paymentMethodId")]
     public int Id { get; set; }
 
     [JsonPropertyName("name")]
@@ -14,11 +14,11 @@ namespace MyApp.BlazorUI.Components.Models
     public string Logo { get; set; } = "";
 
     [JsonPropertyName("status")]
-    [JsonConverter(typeof(JsonStringEnumConverter))] // ✅ biar "Active"/"Inactive" bisa dikonversi ke enum
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public PaymentStatus Status { get; set; }
   }
 
-  [JsonConverter(typeof(JsonStringEnumConverter))] // optional tapi aman
+  [JsonConverter(typeof(JsonStringEnumConverter))] 
   public enum PaymentStatus
   {
     Active,
