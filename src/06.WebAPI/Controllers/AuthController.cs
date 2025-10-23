@@ -22,7 +22,7 @@ namespace MyApp.WebAPI.Controllers
     [HttpPost("register")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromForm] RegisterRequestDto dto)
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterRequestDto dto)
     {
       var result = await _authService.RegisterAsync(dto);
       if (result.Success)
@@ -46,7 +46,7 @@ namespace MyApp.WebAPI.Controllers
     [HttpPost("resend-confirmation-email")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> ResendConfirmationEmail([FromForm] string email)
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> ResendConfirmationEmail([FromBody] string email)
     {
       var result = await _authService.ResendConfirmationEmailAsync(email);
       if (result.Success)
@@ -79,7 +79,7 @@ namespace MyApp.WebAPI.Controllers
     [HttpPost("login")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromForm] LoginRequestDto dto)
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginRequestDto dto)
     {
       var result = await _authService.LoginAsync(dto);
       if (result.Success)
@@ -103,7 +103,7 @@ namespace MyApp.WebAPI.Controllers
     [HttpPost("refresh-token")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Refresh([FromForm] RefreshTokenRequestDto dto)
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Refresh([FromBody] RefreshTokenRequestDto dto)
     {
       var result = await _authService.RefreshTokenAsync(dto);
 
@@ -157,7 +157,7 @@ namespace MyApp.WebAPI.Controllers
     [HttpPost("forgot-password")]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> ForgotPassword([FromForm] ForgotPasswordRequestDto dto)
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
     {
       var result = await _authService.SendResetPasswordEmailAsync(dto);
       if (result.Success)
@@ -181,7 +181,7 @@ namespace MyApp.WebAPI.Controllers
     [HttpPost("reset-password")]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> ResetPassword([FromForm] ResetPasswordRequestDto request)
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> ResetPassword([FromBody] ResetPasswordRequestDto request)
     {
       var result = await _authService.ResetPasswordAsync(request);
       if (result.Success)

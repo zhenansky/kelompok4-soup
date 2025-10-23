@@ -6,8 +6,8 @@
   width: 11rem;
   height: 2.5rem;
   color: #5b4947;
-  text-transform: none;
-  text-decoration: none;
+  text-transform: none !important;
+  text-decoration: none !important;
 }
 
 .button-outline {
