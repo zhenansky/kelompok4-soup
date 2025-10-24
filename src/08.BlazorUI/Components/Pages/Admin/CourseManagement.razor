@@ -1,0 +1,156 @@
+@page "/admin-course"
+@layout AdminLayout
+@using MudBlazor
+
+<PageTitle>Course Management</PageTitle>
+
+<MudPaper Elevation="1" Style="padding: 1rem; height: calc(100vh - 8rem); display:flex; flex-direction:column;">
+    <MudText Typo="Typo.h4" Class="mb-4">Course Management</MudText>
+
+    <MudButton Variant="Variant.Filled" Class="rounded-lg btn-add mb-3" Style="width:150px;" OnClick="@OpenAddDialog">
+        Add Course
+    </MudButton>
+
+    <div style="flex:1; overflow-y:auto;">
+        <MudTable Items="@Courses" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+            <HeaderContent>
+                <MudTh class="t">Name</MudTh>
+                <MudTh class="t">Image</MudTh>
+                <MudTh class="t">Price</MudTh>
+                <MudTh class="t">Description</MudTh>
+                <MudTh class="t">Category</MudTh>
+                <MudTh class="t">Schedule</MudTh>
+                <MudTh class="t">Available Slot</MudTh>
+                <MudTh class="t">Action</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd class="t">@context.Name</MudTd>
+                <MudTd class="t">
+                    <MudAvatar Image="@context.ImageUrl" Size="Size.Medium" />
+                </MudTd>
+                <MudTd class="t">@context.Price</MudTd>
+                <MudTd class="t">@context.Description</MudTd>
+                <MudTd class="t">@context.CategoryName</MudTd>
+                <MudTd class="t">@context.Schedule</MudTd>
+                <MudTd class="t">@context.AvailableSlot</MudTd>
+                <MudTd class="t">
+                    <MudButton Variant="Variant.Filled" Class="rounded-lg btn-edit me-2"
+                        OnClick="@(() => OpenEditDialog(context))">
+                        Edit
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Class="rounded-lg btn-delete"
+                        OnClick="@(() => DeleteCourse(context))">
+                        Delete
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </div>
+
+    @if (ShowDialog)
+    {
+        <MudDialog IsVisible="true">
+            <DialogContent>
+                <MudText Typo="Typo.h6">@DialogTitle</MudText>
+                <MudText>Ini contoh dialog (belum terhubung ke backend).</MudText>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="@CloseDialog" Color="Color.Primary">Close</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+</MudPaper>
+
+@code {
+    private bool ShowDialog = false;
+    private string DialogTitle = "";
+    private List<CourseItem> Courses = new();
+
+    protected override void OnInitialized()
+    {
+        // Dummy data dulu
+        Courses = new List<CourseItem>
+{
+new() { Name = "Pizza", ImageUrl = "https://via.placeholder.com/80", Price = "100", Description = "Pizza", CategoryName
+= "Western", Schedule = "Sunday", AvailableSlot = 10 },
+new() { Name = "pudding", ImageUrl = "https://via.placeholder.com/80", Price = "120", Description = "Pudding",
+CategoryName = "Dessert", Schedule = "Tuesday", AvailableSlot = 5 },
+new() { Name = "Tomyum", ImageUrl = "https://via.placeholder.com/80", Price = "90", Description = "Tomyum", CategoryName
+= "Asian", Schedule = "Friday", AvailableSlot = 8 }
+};
+    }
+
+    private void OpenAddDialog()
+    {
+        DialogTitle = "Add New Course";
+        ShowDialog = true;
+    }
+
+    private void OpenEditDialog(CourseItem course)
+    {
+        DialogTitle = $"Edit Course: {course.Name}";
+        ShowDialog = true;
+    }
+
+    private void DeleteCourse(CourseItem course)
+    {
+        Courses.Remove(course);
+    }
+
+    private void CloseDialog()
+    {
+        ShowDialog = false;
+    }
+
+    public class CourseItem
+    {
+        public string Name { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string Price { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string CategoryName { get; set; } = "";
+        public string Schedule { get; set; } = "";
+        public int AvailableSlot { get; set; }
+    }
+}
+
+<style>
+    .btn-add {
+        background-color: green;
+        text-transform: none;
+        color: white;
+    }
+
+    .btn-add:hover {
+        background-color: #0f7a0f;
+    }
+
+    .btn-edit {
+        background-color: #fabc1d;
+        text-transform: none;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #f1b60d;
+    }
+
+    .btn-delete {
+        background-color: red;
+        text-transform: none;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: darkred;
+    }
+
+    .mud-table-head th {
+        background-color: #dbffdd !important;
+    }
+
+    .t {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>

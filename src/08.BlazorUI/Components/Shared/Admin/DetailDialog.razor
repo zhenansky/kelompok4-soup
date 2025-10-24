@@ -21,7 +21,7 @@
           <MudText>@(InvoiceDetail?.NoInvoice ?? "-")</MudText>
           <MudText>
             @(InvoiceDetail?.Date != DateTime.MinValue
-                        ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+                        ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy")
                         : "-")
           </MudText>
         </MudItem>

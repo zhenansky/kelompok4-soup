@@ -1,0 +1,144 @@
+@page "/admin-category"
+@layout AdminLayout
+@using MudBlazor
+
+<PageTitle>Category Management</PageTitle>
+
+<MudPaper Elevation="1" Style="padding: 1rem; height: calc(100vh - 8rem); display:flex; flex-direction:column;">
+    <MudText Typo="Typo.h4" Class="mb-4">Category Management</MudText>
+
+    <MudButton Variant="Variant.Filled" Class="rounded-lg btn-add mb-3" Style="width:180px;" OnClick="@OpenAddDialog">
+        Add Category
+    </MudButton>
+
+    <div style="flex:1; overflow-y:auto;">
+        <MudTable Items="@Categories" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+            <HeaderContent>
+                <MudTh class="t">Name</MudTh>
+                <MudTh class="t">Image</MudTh>
+                <MudTh class="t">Description</MudTh>
+                <MudTh class="t">Menu Course Count</MudTh>
+                <MudTh class="t">Action</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd class="t">@context.Name</MudTd>
+                <MudTd class="t">
+                    <MudAvatar Image="@context.ImageUrl" Size="Size.Medium" />
+                </MudTd>
+                <MudTd class="t">@context.Description</MudTd>
+                <MudTd class="t">@context.MenuCourseCount</MudTd>
+                <MudTd class="t">
+                    <MudButton Variant="Variant.Filled" Class="rounded-lg btn-edit me-2"
+                        OnClick="@(() => OpenEditDialog(context))">
+                        Edit
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Class="rounded-lg btn-delete"
+                        OnClick="@(() => DeleteCategory(context))">
+                        Delete
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </div>
+
+    @if (ShowDialog)
+    {
+        <MudDialog IsVisible="true">
+            <DialogContent>
+                <MudText Typo="Typo.h6">@DialogTitle</MudText>
+                <MudText>Ini contoh dialog (belum terhubung ke backend).</MudText>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="@CloseDialog" Color="Color.Primary">Close</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+</MudPaper>
+
+@code {
+    private bool ShowDialog = false;
+    private string DialogTitle = "";
+    private List<CategoryItem> Categories = new();
+
+    protected override void OnInitialized()
+    {
+        // Dummy data sementara
+        Categories = new List<CategoryItem>
+{
+new() { Name = "Asian", ImageUrl = "https://via.placeholder.com/80", Description = "Asian", MenuCourseCount = 12 },
+new() { Name = "Western", ImageUrl = "https://via.placeholder.com/80", Description = "Western", MenuCourseCount = 8 },
+new() { Name = "Dessert", ImageUrl = "https://via.placeholder.com/80", Description = "Dessert", MenuCourseCount = 10 }
+};
+    }
+
+    private void OpenAddDialog()
+    {
+        DialogTitle = "Add New Category";
+        ShowDialog = true;
+    }
+
+    private void OpenEditDialog(CategoryItem category)
+    {
+        DialogTitle = $"Edit Category: {category.Name}";
+        ShowDialog = true;
+    }
+
+    private void DeleteCategory(CategoryItem category)
+    {
+        Categories.Remove(category);
+    }
+
+    private void CloseDialog()
+    {
+        ShowDialog = false;
+    }
+
+    public class CategoryItem
+    {
+        public string Name { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public string Description { get; set; } = "";
+        public int MenuCourseCount { get; set; }
+    }
+}
+
+<style>
+    .btn-add {
+        background-color: green;
+        text-transform: none;
+        color: white;
+    }
+
+    .btn-add:hover {
+        background-color: #0f7a0f;
+    }
+
+    .btn-edit {
+        background-color: #fabc1d;
+        text-transform: none;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #f1b60d;
+    }
+
+    .btn-delete {
+        background-color: red;
+        text-transform: none;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: darkred;
+    }
+
+    .mud-table-head th {
+        background-color: #dbffdd !important;
+    }
+
+    .t {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
