@@ -6,6 +6,11 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService _localStorage
 @inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
 
 <MudNavMenu Class="@Css" Style="width: 100%;">
   @if (!_isLoggedIn)
@@ -129,23 +134,35 @@
       var result = await AuthService.LogoutAsync();
       if (result == null)
       {
-        Console.WriteLine("Logout failed: no response from server.");
+        Snackbar.Add("Server tidak merespons saat logout.", Severity.Error);
         return;
       }
 
       if (result.Success)
       {
+
+        await LocalStorage.RemoveItemAsync("accessToken");
+        await LocalStorage.RemoveItemAsync("refreshToken");
+        await LocalStorage.RemoveItemAsync("expiresAt");
+
+        if (AuthStateProvider is CustomAuthStateProvider customProvider)
+          customProvider.NotifyUserLogout();
+
         _isLoggedIn = false;
-        Console.WriteLine(result.Message);
         StateHasChanged();
+
+        Snackbar.Add("✅ Logout Succes! See you later 👋", Severity.Success);
+
+        await Task.Delay(1000);
       }
       else
       {
-        Console.WriteLine(result.Message);
+        Snackbar.Add(result.Message ?? "Logout gagal!", Severity.Error);
       }
     }
     catch (Exception ex)
     {
+      Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
       Console.WriteLine($"Logout error: {ex}");
     }
   }

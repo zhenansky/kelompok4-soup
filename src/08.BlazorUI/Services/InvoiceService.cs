@@ -47,8 +47,8 @@ namespace MyApp.BlazorUI.Services
             }
         }
 
-        // 🔹 Ambil detail invoice
-        public async Task<InvoiceDetailData?> GetInvoiceDetailAsync(int invoiceId, string? token = null)
+        // 🔹 Ambil detail invoice (revisi)
+        public async Task<InvoiceDetailModel?> GetInvoiceDetailAsync(int invoiceId, string? token = null)
         {
             try
             {
@@ -78,7 +78,33 @@ namespace MyApp.BlazorUI.Services
                     json,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                return invoiceResponse?.Data;
+                var data = invoiceResponse?.Data;
+                if (data == null)
+                {
+                    Console.WriteLine("⚠️ Tidak ada data pada respons invoice detail.");
+                    return null;
+                }
+
+                // ✅ Mapping manual ke model untuk UI
+                var model = new InvoiceDetailModel
+                {
+                    UserIdRef = data.UserIdRef,
+                    InvoiceId = data.InvoiceId,
+                    NoInvoice = data.NoInvoice,
+                    Date = data.Date,
+                    TotalPrice = data.TotalPrice,
+                    ListCourse = data.ListCourse.Select(x => new MenuCourseModel
+                    {
+                        MenuCourseId = x.MenuCourseId,
+                        Name = x.Name,
+                        Category = x.Category,
+                        ScheduleDate = x.ScheduleDate,
+                        Price = x.Price
+                    }).ToList()
+                };
+
+                Console.WriteLine($"✅ Invoice loaded: {model.NoInvoice}, total: {model.TotalPrice}, items: {model.ListCourse.Count}");
+                return model;
             }
             catch (Exception ex)
             {
@@ -86,7 +112,5 @@ namespace MyApp.BlazorUI.Services
                 return null;
             }
         }
-
-
     }
 }

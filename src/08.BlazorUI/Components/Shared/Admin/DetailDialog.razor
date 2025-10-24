@@ -8,18 +8,20 @@
 <MudDialog>
   <TitleContent>
     <MudText Typo="Typo.h6">Detail Invoice</MudText>
+  </TitleContent>
 
-    <MudGrid Class="mt-4">
+  <DialogContent>
+    <MudGrid Class="mt-4 mb-4">
       <MudItem xs="12" sm="6" Class="d-flex gap-8">
         <MudItem>
           <MudText>No. Invoice:</MudText>
           <MudText>Date:</MudText>
         </MudItem>
         <MudItem>
-          <MudText>@(Invoice?.NoInvoice ?? "-")</MudText>
+          <MudText>@(InvoiceDetail?.NoInvoice ?? "-")</MudText>
           <MudText>
-            @(Invoice?.Date != DateTime.MinValue
-                        ? Invoice?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+            @(InvoiceDetail?.Date != DateTime.MinValue
+                        ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
                         : "-")
           </MudText>
         </MudItem>
@@ -28,13 +30,11 @@
       <MudItem xs="12" sm="6" Class="d-flex justify-end align-end gap-8">
         <MudText Typo="Typo.body1" Style="font-weight:700;">Total Price</MudText>
         <MudText Typo="Typo.body1" Style="font-weight:700;">
-          @("IDR " + (Invoice?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
+          @("IDR " + (InvoiceDetail?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
         </MudText>
       </MudItem>
     </MudGrid>
-  </TitleContent>
 
-  <DialogContent>
     <MudTable Items="InvoiceItems" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="_loading">
       <HeaderContent>
         <MudTh>No</MudTh>
@@ -60,6 +60,12 @@
         <MudText Class="m-3">Tidak ada data kursus untuk invoice ini.</MudText>
       </NoRecordsContent>
     </MudTable>
+
+    @if (_loading)
+    {
+      <MudProgressCircular Indeterminate="true" Color="Color.Primary" Class="mx-auto my-4" />
+    }
+
   </DialogContent>
 
   <DialogActions>
@@ -72,10 +78,17 @@
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
   private bool _loading = false;
-  private InvoiceDetailData? Invoice;
+  private InvoiceDetailModel? InvoiceDetail;
   private List<CourseItem> InvoiceItems = new();
-  protected override async Task OnInitializedAsync()
+
+  protected override async Task OnParametersSetAsync()
   {
+    if (InvoiceId <= 0)
+    {
+      Console.WriteLine("⚠️ InvoiceId belum valid, skip load.");
+      return;
+    }
+
     await LoadInvoiceAsync();
   }
 
@@ -89,22 +102,19 @@
       if (string.IsNullOrEmpty(token))
       {
         Snackbar.Add("⚠️ Token tidak ditemukan, silakan login kembali.", Severity.Warning);
-        _loading = false;
         return;
       }
 
-      Console.WriteLine($"🪪 Token ditemukan: {token.Substring(0, Math.Min(token.Length, 15))}...");
+      InvoiceDetail = await InvoiceService.GetInvoiceDetailAsync(InvoiceId, token);
 
-      Invoice = await InvoiceService.GetInvoiceDetailAsync(InvoiceId, token);
-
-      if (Invoice == null)
+      if (InvoiceDetail == null)
       {
         Snackbar.Add("❌ Gagal memuat detail invoice.", Severity.Error);
-        _loading = false;
         return;
       }
 
-      InvoiceItems = Invoice.ListCourse?.Select((c, i) => new CourseItem
+      // 🔹 Setelah data diterima, buat daftar item
+      InvoiceItems = InvoiceDetail.ListCourse?.Select((c, i) => new CourseItem
       {
         No = i + 1,
         CourseName = c.Name,
@@ -113,14 +123,21 @@
         Price = c.Price
       }).ToList() ?? new List<CourseItem>();
 
+      Console.WriteLine($"✅ Invoice loaded: {InvoiceDetail.NoInvoice}, items: {InvoiceItems.Count}");
+
+      // ✅ Tambahkan ini supaya TitleContent ikut di-render ulang
+      StateHasChanged();
     }
     catch (Exception ex)
     {
       Snackbar.Add($"❌ Error loading invoice: {ex.Message}", Severity.Error);
       Console.WriteLine($"❌ Error detail: {ex}");
     }
-
-    _loading = false;
+    finally
+    {
+      _loading = false;
+      StateHasChanged(); // tetap biar loading spinner hilang
+    }
   }
 
   private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
