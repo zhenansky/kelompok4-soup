@@ -33,6 +33,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<InvoiceService>();
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<MyClassServices>();
 
 // Blazored LocalStorage (for token storage)
 builder.Services.AddBlazoredLocalStorage();
@@ -80,14 +81,23 @@ builder.Services.AddHttpClient<InvoiceService>(client =>
 {
   client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
       ?? "http://localhost:5099/");
-});
+})
+.AddHttpMessageHandler<AuthTokenHandler>();
 
 // 🚫 DashboardService tidak perlu token
 builder.Services.AddHttpClient<DashboardService>(client =>
 {
   client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
       ?? "http://localhost:5099/");
-});
+})
+.AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<MyClassServices>(client =>
+{
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
+      ?? "http://localhost:5099/");
+})
+.AddHttpMessageHandler<AuthTokenHandler>();
 
 // Register other services
 builder.Services.AddScoped<IAuthService, AuthService>();

@@ -78,7 +78,7 @@
   [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
   private bool _loading = false;
-  private InvoiceDetailModel? InvoiceDetail;
+  private InvoiceDetailData? InvoiceDetail;
   private List<CourseItem> InvoiceItems = new();
 
   protected override async Task OnParametersSetAsync()

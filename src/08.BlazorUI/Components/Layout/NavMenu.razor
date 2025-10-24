@@ -72,8 +72,15 @@
 
     <MudLink Href="/" Class="nav-link">
       <MudButton Class="nav-btn" OnClick="Logout">
-        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
-        <MudText Class="d-flex d-sm-none nav-text">Logout</MudText>
+        @if (_loading)
+        {
+          <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+        }
+        else
+        {
+          <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+          <MudText Class="d-flex d-sm-none nav-text">Logout</MudText>
+        }
       </MudButton>
     </MudLink>
   }
@@ -84,6 +91,7 @@
   private bool _isLoggedIn;
   private string _userRole = "";
   private bool _initialized;
+  private bool _loading;
 
   protected override async Task OnInitializedAsync()
   {
@@ -129,6 +137,9 @@
 
   private async Task Logout()
   {
+    _loading = true;
+    StateHasChanged();
+
     try
     {
       var result = await AuthService.LogoutAsync();
@@ -164,6 +175,11 @@
     {
       Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
       Console.WriteLine($"Logout error: {ex}");
+    }
+    finally
+    {
+      _loading = false;
+      StateHasChanged();
     }
   }
 }

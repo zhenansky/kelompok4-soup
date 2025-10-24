@@ -1,88 +1,118 @@
 @page "/my-class"
+@using Blazored.LocalStorage
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Models
+@using MyApp.BlazorUI.Services.Interfaces
 @using MyApp.BlazorUI.Components.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
-@attribute [Authorize]
-@inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthStateProvider
+@inject MyClassServices MyClassServices
+@inject ILocalStorageService LocalStorage
+@inject IConfiguration Config
 
 
 <PageTitle>My Class</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="pa-4 container">
 
-  <MudPaper Elevation="0" Class="pa-4">
-    @foreach (var mc in myClasses)
-    {
-      <MudGrid Class="my-3 align-center" @key="mc">
+  @if (_loading)
+  {
+    <div class="d-flex align-items-center justify-content-center" style="height: 100vh;">
+      <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+      <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
+    </div>
+  }
+  else
+  {
+    <MudPaper Elevation="0" Class="pa-4">
+      @foreach (var mc in myClasses)
+      {
+        <MudGrid Class="my-3 align-center" @key="mc">
 
-        <MudItem xs="12" sm="4" md="2">
-          <MudImage Src="@mc.Image" Alt="@mc.Name" Fluid="true" />
-        </MudItem>
-        <MudItem xs="10" sm="6" md="8">
-          <div class="d-flex flex-column">
-            <MudText Typo="Typo.caption" style="color: #828282;">@mc.Category</MudText>
-            <MudText Typo="Typo.h6" style="font-weight: 600;">@mc.Name</MudText>
-            <MudText Typo="Typo.subtitle1" Class="mt-1" style="color: #FABC1D; font-weight: 500;">
-              Schedule: @mc.Schedule.ToString("dddd, dd MMMM yyyy")
-            </MudText>
-          </div>
-        </MudItem>
-      </MudGrid>
-      <MudDivider Class="my-2" Style="border: 1px solid rgba(0,0,0,0.77);" />
+          <MudItem xs="12" sm="4" md="2">
+            <MudImage Src="@($"{Config["ApiBaseUrl"]}/{mc.Image}")" Alt="@mc.Name" Fluid="true" />
+          </MudItem>
+          <MudItem xs="10" sm="6" md="8">
+            <div class="d-flex flex-column">
+              <MudText Typo="Typo.caption" style="color: #828282;">@mc.Category</MudText>
+              <MudText Typo="Typo.h6" style="font-weight: 600;">@mc.Name</MudText>
+              <MudText Typo="Typo.subtitle1" Class="mt-1" style="color: #FABC1D; font-weight: 500;">
+                Schedule: @mc.Schedule.ToString("dddd, dd MMMM yyyy")
+              </MudText>
+            </div>
+          </MudItem>
+        </MudGrid>
+        <MudDivider Class="my-2" Style="border: 1px solid rgba(0,0,0,0.77);" />
+      }
+    </MudPaper>
+    @if (myClasses.Count() < 1)
+    {
+      <MudText Class="d-flex justify-center" Style="font-weight: 600; font-size: 24px;">No course found.</MudText>
     }
-  </MudPaper>
+  }
 </MudContainer>
 
 @code {
-  private string userName = "";
-  private string userEmail = "";
-  private string userRole = "";
+  private bool _loading;
+  private bool _loaded;
+  private int totalMyClass;
+  private List<MyClassData> myClasses = new();
 
   protected override async Task OnInitializedAsync()
   {
-    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-    var user = authState.User;
-
-    if (user.Identity?.IsAuthenticated == true)
-    {
-      userName = user.FindFirst("name")?.Value ?? "User";
-      userEmail = user.FindFirst("email")?.Value ?? user.Identity.Name ?? "N/A";
-      userRole = user.FindFirst("role")?.Value ?? "User";
-    }
-    else
-    {
-      // Redirect to login if not authenticated
-      Navigation.NavigateTo("/login", forceLoad: true);
-    }
+    _loading = true;
   }
 
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender || _loaded)
+      return;
 
-  private IEnumerable<MyClassModel> myClasses = new List<MyClassModel>
-{
-new MyClassModel
-{
-MenuCourseId = 1,
-Name = "Tom Yum Thailand",
-Image = "images/image11.svg",
-Category = "Asian",
-Schedule = new DateTime(2022,7,27)
-},
-new MyClassModel
-{
-MenuCourseId = 1,
-Name = "Ichiraku Ramen",
-Image = "images/image10.svg",
-Category = "Asian",
-Schedule = new DateTime(2022,7,24)
-},
-new MyClassModel
-{
-MenuCourseId = 1,
-Name = "Italian Spaghetti Bolognese",
-Image = "images/image16.svg",
-Category = "Eastern",
-Schedule = new DateTime(2022,7,25)
-}
-};
+    _loading = true;
+
+    try
+    {
+      // 2️⃣ Coba baca token dari LocalStorage
+      string? token = null;
+      try
+      {
+        token = await LocalStorage.GetItemAsync<string>("accessToken");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("⚠️ LocalStorage belum siap atau tidak tersedia: " + ex.Message);
+      }
+
+      // 3️⃣ Kalau token ada, ambil data invoice
+      if (!string.IsNullOrWhiteSpace(token))
+      {
+        Console.WriteLine("🔑 Token ditemukan, ambil data My Class...");
+
+        myClasses = (await MyClassServices.GetMyClassAsync(token))
+        .OrderByDescending(i => i.Schedule)
+        .ToList();
+
+        totalMyClass = myClasses?.Count ?? 0;
+        Console.WriteLine($"📦 Jumlah My Class diterima: {totalMyClass}");
+      }
+      else
+      {
+        myClasses.Clear();
+        totalMyClass = 0;
+        Console.WriteLine("🚫 Token tidak tersedia: skip memuat My Class.");
+      }
+
+      _loaded = true;
+      StateHasChanged(); // ⬅️ Pastikan UI refresh setelah data terload
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"❌ My Classes error: {ex}");
+    }
+    finally
+    {
+      _loading = false;
+      StateHasChanged();
+    }
+  }
 }

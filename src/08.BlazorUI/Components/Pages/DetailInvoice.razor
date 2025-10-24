@@ -1,118 +1,166 @@
-@page "/invoice/detail"
+@page "/invoice/detail/{id:int}"
+@using Blazored.LocalStorage
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Models
+@using MyApp.BlazorUI.Services.Interfaces
+@inject NavigationManager Navigation
+@inject InvoiceService InvoiceService
+@inject ILocalStorageService LocalStorage
+@inject IAuthService AuthService
 
 <style>
-    .custom-header {
-        background-color: #5B4947;
-    }
+  .custom-header {
+    background-color: #5B4947;
+  }
 
-    /* Row ganjil putih, genap abu-abu */
-    .odd-row {
-        background-color: #ffffff;
-    }
+  /* Row ganjil putih, genap abu-abu */
+  .odd-row {
+    background-color: #ffffff;
+  }
 
-    .even-row {
-        background-color: #f5f5f5;
-    }
+  .even-row {
+    background-color: #f5f5f5;
+  }
 
-    /* Align cell */
-    .center-cell {
-        text-align: center;
-    }
+  /* Align cell */
+  .center-cell {
+    text-align: center;
+  }
 
-    .left-cell {
-        text-align: left;
-    }
+  .left-cell {
+    text-align: left;
+  }
 </style>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge">
-    <MudItem Class="px-12 mt-10">
-        <MudBreadcrumbs Items="_items" Separator=">"></MudBreadcrumbs>
-    </MudItem>
+  <MudItem Class="px-12 mt-10">
+    <MudBreadcrumbs Items="_items" Separator=">">
+    </MudBreadcrumbs>
+  </MudItem>
 
-    <MudItem class="px-14 my-10 d-flex flex-column">
-        <MudText Typo="Typo.h6" Style="color:#4F4F4F; font-weight:600">
-            Detail Invoice
+  <MudItem class="px-14 my-10 d-flex flex-column">
+    <MudText Typo="Typo.h6" Style="font-weight: 600;">Detail Invoice</MudText>
+
+    <MudGrid Class="mt-4">
+      <MudItem xs="12" sm="6" Class="d-flex gap-8">
+        <MudItem>
+          <MudText>No. Invoice:</MudText>
+          <MudText>Date:</MudText>
+        </MudItem>
+        <MudItem>
+          <MudText>@(InvoiceDetail?.NoInvoice ?? "-")</MudText>
+          <MudText>
+            @(InvoiceDetail?.Date != DateTime.MinValue
+                        ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("en-EN"))
+                        : "-")
+          </MudText>
+        </MudItem>
+      </MudItem>
+
+      <MudItem xs="12" sm="6" Class="d-flex justify-end align-end gap-8">
+        <MudText Typo="Typo.body1" Style="font-weight:700;">Total Price</MudText>
+        <MudText Typo="Typo.body1" Style="font-weight:700;">
+          @("IDR " + (InvoiceDetail?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
         </MudText>
+      </MudItem>
+    </MudGrid>
+  </MudItem>
 
-        <!-- No Invoice -->
-        <MudText Typo="Typo.body2" Class="mt-4">
-            <b>No. Invoice :</b> SOU00003
-        </MudText>
-
-        <!-- Date & Total Price dalam 1 baris -->
-        <MudGrid Class="mt-1" Spacing="0">
-            <MudItem xs="12" sm="6" Class="pa-0">
-                <MudText Typo="Typo.body2">
-                    <b>Date :</b> 12 June 2022
-                </MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6" Class="d-flex justify-end pa-0">
-                <MudText Typo="Typo.body2">
-                    <b>Total Price :</b> IDR 450.000
-                </MudText>
-            </MudItem>
-        </MudGrid>
-    </MudItem>
-
-    <MudTable T="DetailInvoiceItem" Items="@Details" Hover="true" Bordered="true" Striped="true"
-        RowClassFunc="RowClassFunc" Class="mx-14 mt-4">
-        <HeaderContent>
-            <MudTh Class="custom-header left-cell" style="color:white; width:5%">No.</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white; width:45%">Course Name</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white; width:15%">Type</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white; width:20%">Schedule</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white; width:15%">Price</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd Class="left-cell" DataLabel="No.">@context.No</MudTd>
-            <MudTd Class="center-cell" DataLabel="Course Name">@context.CourseName</MudTd>
-            <MudTd Class="center-cell" DataLabel="Type">@context.Type</MudTd>
-            <MudTd Class="center-cell" DataLabel="Schedule">@context.Schedule.ToString("dd MMMM yyyy")</MudTd>
-            <MudTd Class="center-cell" DataLabel="Price">IDR @context.Price.ToString("N0")</MudTd>
-        </RowTemplate>
-    </MudTable>
+  <MudTable T="InvoiceCourseData" Items="@Details" Hover="true" Bordered="false" Striped="true"
+    RowClassFunc="RowClassFunc" Class="mx-14 mt-4">
+    <HeaderContent>
+      <MudTh Class="custom-header left-cell" style="color:white; width:5%">No.</MudTh>
+      <MudTh Class="custom-header center-cell" style="color:white; width:45%">Course Name</MudTh>
+      <MudTh Class="custom-header center-cell" style="color:white; width:15%">Type</MudTh>
+      <MudTh Class="custom-header center-cell" style="color:white; width:20%">Schedule</MudTh>
+      <MudTh Class="custom-header center-cell" style="color:white; width:15%">Price</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd Class="left-cell" DataLabel="No.">@(Details.IndexOf(context) + 1)</MudTd>
+      <MudTd Class="center-cell" DataLabel="Course Name">@context.Name</MudTd>
+      <MudTd Class="center-cell" DataLabel="Type">@context.Category</MudTd>
+      <MudTd Class="center-cell" DataLabel="Schedule">@context.ScheduleDate.ToString("dddd, dd MMMM yyyy", new
+                System.Globalization.CultureInfo("en-EN"))</MudTd>
+      <MudTd Class="center-cell" DataLabel="Price">IDR @context.Price.ToString("N0")</MudTd>
+    </RowTemplate>
+  </MudTable>
 
 </MudContainer>
 
 @code {
-    private List<BreadcrumbItem> _items = new()
+  [Parameter]
+  public int id { get; set; }
+  private bool _loading;
+  private bool _loaded;
+  private int totalInvoices;
+  private InvoiceDetailData InvoiceDetail = new();
+  private List<InvoiceCourseData> Details = new();
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender || _loaded)
+      return;
+
+    _loading = true;
+
+    try
+    {
+      // 2️⃣ Coba baca token dari LocalStorage
+      string? token = null;
+      try
+      {
+        token = await LocalStorage.GetItemAsync<string>("accessToken");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("⚠️ LocalStorage belum siap atau tidak tersedia: " + ex.Message);
+      }
+
+      // 3️⃣ Kalau token ada, ambil data invoice
+      if (!string.IsNullOrWhiteSpace(token))
+      {
+        Console.WriteLine("🔑 Token ditemukan, ambil data invoice...");
+
+        InvoiceDetail = await InvoiceService.GetInvoiceDetailAsync(id, token);
+        if (InvoiceDetail != null)
+        {
+          Details = InvoiceDetail.ListCourse;
+        }
+        else
+        {
+          Details.Clear();
+        }
+      }
+      else
+      {
+        Console.WriteLine("🚫 Token tidak tersedia: skip memuat invoice.");
+      }
+
+      _loaded = true;
+      StateHasChanged(); // ⬅️ Pastikan UI refresh setelah data terload
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"❌ Invoices error: {ex}");
+    }
+    finally
+    {
+      _loading = false;
+      StateHasChanged();
+    }
+  }
+
+
+  private List<BreadcrumbItem> _items = new()
 {
 new("Home", href: "/"),
-new("Invoice", href: "#"),
+new("Invoice", href: "/invoice"),
 new("Detail Invoice", href: null, disabled: true)
 };
 
-    public class DetailInvoiceItem
-    {
-        public int No { get; set; }
-        public string CourseName { get; set; }
-        public string Type { get; set; }
-        public DateTime Schedule { get; set; }
-        public decimal Price { get; set; }
-    }
 
-    private List<DetailInvoiceItem> Details = new()
-{
-new DetailInvoiceItem
-{
-No = 1,
-CourseName = "Tomyum",
-Type = "Asian",
-Schedule = new DateTime(2022, 6, 12),
-Price = 250000
-},
-new DetailInvoiceItem
-{
-No = 2,
-CourseName = "Pad Thai",
-Type = "Asian",
-Schedule = new DateTime(2022, 7, 5),
-Price = 300000
-}
-};
-
-    private string RowClassFunc(DetailInvoiceItem detail, int rowNumber)
-    {
-        return (rowNumber % 2 == 0) ? "even-row" : "odd-row";
-    }
+  private string RowClassFunc(InvoiceCourseData detail, int rowNumber)
+  {
+    return (rowNumber % 2 == 1) ? "even-row" : "odd-row";
+  }
 }

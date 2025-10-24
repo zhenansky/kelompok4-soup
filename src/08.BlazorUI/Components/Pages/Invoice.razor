@@ -1,110 +1,185 @@
 @page "/invoice"
-@using MudBlazor
+@using Blazored.LocalStorage
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Models
+@using MyApp.BlazorUI.Services.Interfaces
+@using MyApp.BlazorUI.Components.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject InvoiceService InvoiceService
+@inject ILocalStorageService LocalStorage
+
 
 <style>
-    .custom-header {
-        background-color: #5B4947;
-    }
+  .custom-header {
+    background-color: #5B4947;
+  }
 
-    /* Row ganjil putih, genap abu-abu */
-    .odd-row {
-        background-color: #ffffff;
-    }
+  /* Row ganjil putih, genap abu-abu */
+  .odd-row {
+    background-color: #ffffff;
+  }
 
-    .even-row {
-        background-color: #f5f5f5;
-    }
+  .even-row {
+    background-color: #f5f5f5;
+  }
 
-    /* Tombol details */
-    .details-btn {
-        background-color: #FABC1D !important;
-        color: black !important;
-        font-weight: bold;
-        width: 75%;
-    }
+  /* Tombol details */
+  .details-btn {
+    background-color: #FABC1D !important;
+    color: black !important;
+    width: 11rem;
+    height: 2.5rem;
+    text-transform: none !important;
+    text-decoration: none !important;
+  }
 
-    /* Align cell */
-    .center-cell {
-        text-align: center;
-    }
+  /* Align cell */
+  .center-cell {
+    text-align: center;
+  }
 
-    .left-cell {
-        text-align: left;
-    }
+  .left-cell {
+    text-align: left;
+  }
 </style>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge">
-    <MudItem Class="px-12 mt-10">
-        <MudBreadcrumbs Items="_items" Separator=">"></MudBreadcrumbs>
-    </MudItem>
+  <MudItem Class="px-12 mt-10">
+    <MudBreadcrumbs Items="_items" Separator=">"></MudBreadcrumbs>
+  </MudItem>
+  @if (_loading)
+  {
+    <div class="d-flex align-items-center justify-content-center" style="height: 100vh;">
+      <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+      <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
+    </div>
+  }
+  else
+  {
     <MudItem class="px-14 my-10">
-        <MudText Typo="Typo.h6" Style="color:#4F4F4F; font-weight:600">Menu Invoice</MudText>
+      <MudText Typo="Typo.h6" Style="color:#4F4F4F; font-weight:600">Menu Invoice</MudText>
     </MudItem>
-    <MudTable Class="mx-14" T="InvoiceItem" Items="@Invoices" Hover="true" Breakpoint="Breakpoint.Sm"
-        RowClassFunc="@RowClassFunc">
-        <HeaderContent>
-            <MudTh Class="custom-header left-cell" style="color:white">No.</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white">No. Invoice</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white">Date</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white">Total Course</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white">Total Price</MudTh>
-            <MudTh Class="custom-header center-cell" style="color:white">Action</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd Class="left-cell" DataLabel="No.">@context.No</MudTd>
-            <MudTd Class="center-cell" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
-            <MudTd Class="center-cell" DataLabel="Date">
-                @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
-            </MudTd>
-            <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
-            <MudTd Class="center-cell" DataLabel="Total Price">@context.TotalPrice.ToString("C")</MudTd>
-            <MudTd Class="center-cell">
-                <MudButton Class="details-btn" Variant="Variant.Filled" Size="Size.Small"
-                    OnClick="@(() => ShowDetails(context))">
-                    Details
-                </MudButton>
-            </MudTd>
-        </RowTemplate>
+    <MudTable Class="mx-14" T="InvoiceItem" Items="@invoices" Hover="true" Breakpoint="Breakpoint.Sm"
+      RowClassFunc="@RowClassFunc">
+      <HeaderContent>
+        <MudTh Class="custom-header left-cell" style="color:white">No.</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">No. Invoice</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Date</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Total Course</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Total Price</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Action</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd Class="left-cell" DataLabel="No.">@(invoices.IndexOf(context) + 1)</MudTd>
+        <MudTd Class="center-cell" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
+        <MudTd Class="center-cell" DataLabel="Date">
+          @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
+        </MudTd>
+        <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
+        <MudTd Class="center-cell" DataLabel="Total Price">@context.TotalPrice.ToString("C")</MudTd>
+        <MudTd Class="center-cell">
+          <MudButton Class="rounded-lg details-btn" Variant="Variant.Filled" Size="Size.Small" DropShadow="false"
+            OnClick="@(() => ShowDetails(context))">
+            Details
+          </MudButton>
+        </MudTd>
+      </RowTemplate>
+      <NoRecordsContent>
+        <MudText Class="m-3">No invoice found.</MudText>
+      </NoRecordsContent>
     </MudTable>
-
+  }
 </MudContainer>
 
 @code {
-    private List<BreadcrumbItem> _items =
-    [
-    new("Home", href: "/"),
+  private string userName = "";
+  private string userEmail = "";
+  private string userRole = "";
+
+  private bool _loading;
+  private bool _loaded;
+  private int totalInvoices;
+  private List<InvoiceItem> invoices = new();
+
+  protected override async Task OnInitializedAsync()
+  {
+    _loading = true;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender || _loaded)
+      return;
+
+    _loading = true;
+
+    try
+    {
+      // 2️⃣ Coba baca token dari LocalStorage
+      string? token = null;
+      try
+      {
+        token = await LocalStorage.GetItemAsync<string>("accessToken");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("⚠️ LocalStorage belum siap atau tidak tersedia: " + ex.Message);
+      }
+
+      // 3️⃣ Kalau token ada, ambil data invoice
+      if (!string.IsNullOrWhiteSpace(token))
+      {
+        Console.WriteLine("🔑 Token ditemukan, ambil data invoice...");
+
+        invoices = (await InvoiceService.GetInvoicesUserAsync(token))
+        .OrderByDescending(i => i.NoInvoice)
+        .ToList();
+
+        totalInvoices = invoices?.Count ?? 0;
+        Console.WriteLine($"📦 Jumlah invoice diterima: {totalInvoices}");
+
+        foreach (var inv in invoices)
+          inv.Email ??= "(no email)";
+      }
+      else
+      {
+        invoices.Clear();
+        totalInvoices = 0;
+        Console.WriteLine("🚫 Token tidak tersedia: skip memuat invoice.");
+      }
+
+      _loaded = true;
+      StateHasChanged(); // ⬅️ Pastikan UI refresh setelah data terload
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"❌ Invoices error: {ex}");
+    }
+    finally
+    {
+      _loading = false;
+      StateHasChanged();
+    }
+  }
+
+
+  private List<BreadcrumbItem> _items =
+  [
+  new("Home", href: "/"),
 new("Invoice", href: null, disabled: true)
-    ];
+  ];
 
-    // Contoh data model
-    public class InvoiceItem
-    {
-        public int No { get; set; }
-        public string NoInvoice { get; set; }
-        public DateTime Date { get; set; }
-        public int TotalCourse { get; set; }
-        public decimal TotalPrice { get; set; }
-    }
 
-    private List<InvoiceItem> Invoices = new()
-{
-new InvoiceItem { No = 1, NoInvoice = "INV-001", Date = new DateTime(2022, 7, 12), TotalCourse = 3, TotalPrice = 500000
-},
-new InvoiceItem { No = 2, NoInvoice = "INV-002", Date = new DateTime(2025, 10, 2), TotalCourse = 2, TotalPrice = 350000
-},
-new InvoiceItem { No = 3, NoInvoice = "INV-003", Date = new DateTime(2025, 10, 3), TotalCourse = 5, TotalPrice = 800000
-},
-new InvoiceItem { No = 4, NoInvoice = "INV-004", Date = new DateTime(2025, 10, 4), TotalCourse = 1, TotalPrice = 200000
-}
-};
+  private string RowClassFunc(InvoiceItem invoice, int rowNumber)
+  {
+    return (rowNumber % 2 == 1) ? "even-row" : "odd-row";
+  }
 
-    private string RowClassFunc(InvoiceItem invoice, int rowNumber)
-    {
-        return (invoice.No % 2 == 1) ? "odd-row" : "even-row";
-    }
-
-    private void ShowDetails(InvoiceItem invoice)
-    {
-        Console.WriteLine($"Details invoice: {invoice.NoInvoice} pada {invoice.Date:dd/MM/yyyy}");
-    }
+  private void ShowDetails(InvoiceItem invoice)
+  {
+    Console.WriteLine($"Details invoice: {invoice.NoInvoice} pada {invoice.Date:dd/MM/yyyy}");
+    Navigation.NavigateTo($"/invoice/detail/{invoice.InvoiceId}", forceLoad: true);
+  }
 }

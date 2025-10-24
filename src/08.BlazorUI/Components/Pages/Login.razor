@@ -143,7 +143,7 @@
     }
     catch (Exception ex)
     {
-      loginError = "Server error";
+      loginError = $"Server error: {ex}";
       Console.WriteLine($"💥 Exception saat login: {ex.Message}");
       Snackbar.Add("Something Wrong in the server, Please try again later", Severity.Error);
     }
