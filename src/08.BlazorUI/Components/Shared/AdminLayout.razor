@@ -4,12 +4,16 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using MyApp.BlazorUI.Services.Interfaces
 @using MyApp.BlazorUI.DTOs.Auth
-@using Blazored.LocalStorage;
+@using Blazored.LocalStorage
 @using System.Security.Claims
 @inject AuthenticationStateProvider AuthStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService _localStorage
 @inject IAuthService AuthService
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@inject ILocalStorageService LocalStorage
+
 
 <MudThemeProvider Theme="CustomTheme" />
 <MudPopoverProvider />
@@ -17,68 +21,106 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-  <MudAppBar Style="height:4rem; background-color: #FABC1D;">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge=" Edge.Start"
+
+  <!-- APP BAR -->
+  <MudAppBar Elevation="4" Style="height:4rem; background-color:#FABC1D; color:white;">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
       OnClick="@((e) => DrawerToggle())" />
-    <MudText Typo="Typo.h6">
-      @title
-    </MudText>
+    <MudText Typo="Typo.h6" Class="ml-2 font-semibold">@title</MudText>
   </MudAppBar>
 
-  <MudDrawer @bind-Open="@_drawerOpen">
-    <MudDrawerHeader Class="d-flex align-center">
-      <MudText Class="d-flex justify-center" Style="width: 100%;" Typo="Typo.body1">Main Menu</MudText>
+  <!-- DRAWER / SIDEBAR -->
+  <MudDrawer @bind-Open="@_drawerOpen" Variant="DrawerVariant.Responsive" Elevation="2"
+    Style="background-color:#fff; min-width:230px;">
+
+    <MudDrawerHeader Class="py-3">
+      <MudText Typo="Typo.subtitle1" Align="Align.Center" Style="font-weight:600; color:#222;">
+        Main Menu
+      </MudText>
     </MudDrawerHeader>
 
-    <MudNavMenu Class="d-flex flex-column" Style="width: 100%;">
-      <MudLink Href="/admin-dashboard" Class="nav-link">
-        <MudButton Class="nav-btn">
-          <MudIcon Icon="@Icons.Material.Filled.Dashboard" />
-          <MudText Class="nav-text">Dashboard</MudText>
-        </MudButton>
-      </MudLink>
+    <MudNavMenu Class="px-2">
+      @foreach (var item in NavItems)
+      {
+        <MudLink Href="@item.Href" Class="nav-link">
+          <MudButton FullWidth="true" Variant="Variant.Text" Color="Color.Inherit"
+            Class="@($"nav-btn {(CurrentUrl == item.Href ? "active" : "")}")"
+            Style="color:#222; text-transform:none; justify-content:flex-start;">
+            <MudIcon Icon="@item.Icon" Style="color:#222; margin-right:8px;" />
+            <MudText Class="nav-text" Style="color:#222; white-space:normal; line-height:1.2;">
+              @item.Label
+            </MudText>
+          </MudButton>
+        </MudLink>
+      }
 
-      <MudLink Href="/admin-user" Class="nav-link">
-        <MudButton Class="nav-btn">
-          <MudIcon Icon="@Icons.Material.Filled.PermContactCalendar" />
-          <MudText Class="nav-text">User Management</MudText>
-        </MudButton>
-      </MudLink>
+      <MudDivider Class="my-2" />
 
-      <MudLink Href="/admin-payment" Class="nav-link">
-        <MudButton Class="nav-btn">
-          <MudIcon Icon="@Icons.Material.Filled.Payments" />
-          <MudText Class="nav-text">Payment Method</MudText>
-        </MudButton>
-      </MudLink>
-
-      <MudDivider Class="my-1 line" />
-
-      <MudDrawerHeader Class="d-flex align-center">
-        <MudText Class="d-flex justify-center" Style="width: 100%;" Typo="Typo.body1">Action Menu</MudText>
+      <MudDrawerHeader Class="py-3">
+        <MudText Typo="Typo.subtitle1" Align="Align.Center" Style="font-weight:600; color:#222;">
+          Action Menu
+        </MudText>
       </MudDrawerHeader>
 
-      <!-- PENTING: gunakan OnClick pada button, bukan Href pada link -->
-      <MudButton Class="nav-btn" OnClick="Logout">
-        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
-        <MudText Class="nav-text">Logout</MudText>
+      <MudButton FullWidth="true" Variant="Variant.Text" Color="Color.Inherit" OnClick="Logout" Class="nav-btn"
+        Style="color:#222; text-transform:none; justify-content:flex-start;">
+        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Style="color:#222; margin-right:8px;" />
+        <MudText Class="nav-text" Style="color:#222;">Logout</MudText>
       </MudButton>
     </MudNavMenu>
   </MudDrawer>
 
-  <MudMainContent Class="main">
+
+  <!-- MAIN CONTENT -->
+  <MudMainContent Class="main-content p-4" Style="background-color:#F9FAFB;">
     @Body
   </MudMainContent>
+
 </MudLayout>
+
+<style>
+  .nav-btn {
+    justify-content: flex-start;
+    color: #444;
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-transform: none;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .nav-btn:hover {
+    background-color: #f1f1f1;
+    color: #000;
+  }
+
+  .nav-text {
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .main-content {
+    margin-top: 4rem;
+    min-height: calc(100vh - 4rem);
+    background-color: #F9FAFB;
+    padding: 1.5rem;
+  }
+
+  /* gunakan @@media agar Razor tidak menganggapnya directive */
+  @@media (max-width: 768px) {
+    .nav-btn {
+      font-size: 0.9rem;
+      padding: 6px 10px;
+    }
+  }
+</style>
 
 @code {
   bool _drawerOpen = true;
   string title = "Dashboard";
 
-  void DrawerToggle()
-  {
-    _drawerOpen = !_drawerOpen;
-  }
+  private string? CurrentUrl;
+
+  void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
   MudTheme CustomTheme = new MudTheme()
   {
@@ -91,39 +133,92 @@
     }
   };
 
+
+  private void UpdateCurrentUrl(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+  {
+    CurrentUrl = NavigationManager.Uri.Replace(NavigationManager.BaseUri, "/");
+    StateHasChanged();
+  }
+
+  protected override void OnInitialized()
+  {
+    CurrentUrl = NavigationManager.Uri.Replace(NavigationManager.BaseUri, "/");
+    NavigationManager.LocationChanged += UpdateCurrentUrl;
+  }
+
+  public void Dispose()
+  {
+    NavigationManager.LocationChanged -= UpdateCurrentUrl;
+  }
+
+  record NavItem(string Label, string Href, string Icon);
+
+  List<NavItem> NavItems = new()
+{
+new("Dashboard", "/admin-dashboard", Icons.Material.Filled.Dashboard),
+new("Course Management", "/admin-course", Icons.Material.Filled.Coffee),
+new("Category Management", "/admin-category", Icons.Material.Filled.Category),
+new("User Management", "/admin-user", Icons.Material.Filled.PermContactCalendar),
+new("Payment Method", "/admin-payment", Icons.Material.Filled.Payments),
+};
+
+
   private async Task Logout()
   {
     try
     {
       var result = await AuthService.LogoutAsync();
-      if (result != null && result.Success)
+      if (result == null)
       {
-        Snackbar.Add("Berhasil logout!", Severity.Success);
+        Snackbar.Add("Server tidak merespons saat logout.", Severity.Error);
+        return;
+      }
 
-        // Hapus token local
-        await _localStorage.RemoveItemAsync("authToken");
+      if (result.Success)
+      {
+        // Pastikan nama variabel local storage sesuai dengan DI (perhatikan huruf besar kecil)
+        await LocalStorage.RemoveItemAsync("authToken");
+        await LocalStorage.RemoveItemAsync("accessToken");
+        await LocalStorage.RemoveItemAsync("refreshToken");
+        await LocalStorage.RemoveItemAsync("expiresAt");
 
-        // Refresh auth state via CustomAuthStateProvider jika tersedia
         if (AuthStateProvider is CustomAuthStateProvider customProvider)
-        {
-          // Hapus token local
-          await _localStorage.RemoveItemAsync("accessToken");
-
-          // Update auth state
           customProvider.NotifyUserLogout();
-        }
 
-        // Arahkan ke halaman login
+        Snackbar.Add("✅ Logout berhasil! Sampai jumpa 👋", Severity.Success);
+
+        await Task.Delay(800);
         Navigation.NavigateTo("/login", forceLoad: true);
       }
       else
       {
-        Snackbar.Add(result?.Message ?? "Gagal logout!", Severity.Error);
+        Snackbar.Add(result.Message ?? "Logout gagal!", Severity.Error);
       }
     }
     catch (Exception ex)
     {
-      Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+      Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+      Console.WriteLine($"Logout error: {ex}");
     }
   }
 }
+
+<style>
+  .nav-btn {
+    border-radius: 8px;
+    text-align: left;
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+  }
+
+  .nav-btn:hover {
+    background-color: #f2f2f2;
+  }
+
+  .nav-btn.active {
+    background-color: #e0e0e0;
+    border-left: 4px solid #1976d2;
+    /* warna biru khas Material */
+    font-weight: 600;
+  }
+</style>
