@@ -6,53 +6,53 @@
 @using MyApp.BlazorUI.Components.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
-@attribute [Authorize]
-@inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Navigation
 @inject MyClassServices MyClassServices
 @inject ILocalStorageService LocalStorage
-@inject IAuthService AuthService
 @inject IConfiguration Config
-
 
 
 <PageTitle>My Class</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="pa-4 container">
 
-  <MudPaper Elevation="0" Class="pa-4">
-    @foreach (var mc in myClasses)
-    {
-      <MudGrid Class="my-3 align-center" @key="mc">
-
-        <MudItem xs="12" sm="4" md="2">
-          <MudImage Src="@($"{Config["ApiBaseUrl"]}/{mc.Image}")" Alt="@mc.Name" Fluid="true" />
-        </MudItem>
-        <MudItem xs="10" sm="6" md="8">
-          <div class="d-flex flex-column">
-            <MudText Typo="Typo.caption" style="color: #828282;">@mc.Category</MudText>
-            <MudText Typo="Typo.h6" style="font-weight: 600;">@mc.Name</MudText>
-            <MudText Typo="Typo.subtitle1" Class="mt-1" style="color: #FABC1D; font-weight: 500;">
-              Schedule: @mc.Schedule.ToString("dddd, dd MMMM yyyy")
-            </MudText>
-          </div>
-        </MudItem>
-      </MudGrid>
-      <MudDivider Class="my-2" Style="border: 1px solid rgba(0,0,0,0.77);" />
-    }
-  </MudPaper>
-  @if (myClasses.Count() < 1)
+  @if (_loading)
   {
-    <MudText Class="d-flex justify-center" Style="font-weight: 600; font-size: 24px;">No course found.</MudText>
+    <div class="d-flex align-items-center justify-content-center" style="height: 100vh;">
+      <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+      <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
+    </div>
+  }
+  else
+  {
+    <MudPaper Elevation="0" Class="pa-4">
+      @foreach (var mc in myClasses)
+      {
+        <MudGrid Class="my-3 align-center" @key="mc">
+
+          <MudItem xs="12" sm="4" md="2">
+            <MudImage Src="@($"{Config["ApiBaseUrl"]}/{mc.Image}")" Alt="@mc.Name" Fluid="true" />
+          </MudItem>
+          <MudItem xs="10" sm="6" md="8">
+            <div class="d-flex flex-column">
+              <MudText Typo="Typo.caption" style="color: #828282;">@mc.Category</MudText>
+              <MudText Typo="Typo.h6" style="font-weight: 600;">@mc.Name</MudText>
+              <MudText Typo="Typo.subtitle1" Class="mt-1" style="color: #FABC1D; font-weight: 500;">
+                Schedule: @mc.Schedule.ToString("dddd, dd MMMM yyyy")
+              </MudText>
+            </div>
+          </MudItem>
+        </MudGrid>
+        <MudDivider Class="my-2" Style="border: 1px solid rgba(0,0,0,0.77);" />
+      }
+    </MudPaper>
+    @if (myClasses.Count() < 1)
+    {
+      <MudText Class="d-flex justify-center" Style="font-weight: 600; font-size: 24px;">No course found.</MudText>
+    }
   }
 </MudContainer>
 
 @code {
-  private string userName = "";
-  private string userEmail = "";
-  private string userRole = "";
-
   private bool _loading;
   private bool _loaded;
   private int totalMyClass;
@@ -60,20 +60,7 @@
 
   protected override async Task OnInitializedAsync()
   {
-    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-    var user = authState.User;
-
-    if (user.Identity?.IsAuthenticated == true)
-    {
-      userName = user.FindFirst("name")?.Value ?? "User";
-      userEmail = user.FindFirst("email")?.Value ?? user.Identity.Name ?? "N/A";
-      userRole = user.FindFirst("role")?.Value ?? "User";
-    }
-    else
-    {
-      // Redirect to login if not authenticated
-      Navigation.NavigateTo("/login", forceLoad: true);
-    }
+    _loading = true;
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)

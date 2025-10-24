@@ -1,5 +1,12 @@
 ﻿@inherits LayoutComponentBase
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Services.Interfaces
+@using System.IdentityModel.Tokens.Jwt;
+@using Blazored.LocalStorage;
 @inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+
 
 
 <MudThemeProvider Theme="CustomTheme" />
@@ -60,6 +67,62 @@
 
 @code {
   bool drawerOpen = false;
+
+  private DateTime? GetJwtExpiry(string? token)
+  {
+    if (string.IsNullOrEmpty(token)) return null;
+
+    var handler = new JwtSecurityTokenHandler();
+    if (!handler.CanReadToken(token)) return null;
+
+    var jwt = handler.ReadJwtToken(token);
+    var exp = jwt.Payload.Expiration;
+    return exp.HasValue
+    ? DateTimeOffset.FromUnixTimeSeconds(exp.Value).UtcDateTime
+    : null;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender) return;
+
+    try
+    {
+      // ✅ Check if user has an access token
+      var token = await _localStorage.GetItemAsync<string>("accessToken");
+      if (string.IsNullOrWhiteSpace(token))
+      {
+        Console.WriteLine("ℹ️ No access token found — user not logged in, skip refresh.");
+        return;
+      }
+
+      // 🕓 Parse access token expiry (from JWT)
+      var expiry = GetJwtExpiry(token);
+      if (expiry == null)
+      {
+        Console.WriteLine("⚠️ Invalid access token format — skip refresh.");
+        return;
+      }
+
+      // ✅ Only refresh if token expired or expiring in <10 seconds
+      if (DateTime.UtcNow >= expiry.Value.AddSeconds(-10))
+      {
+        Console.WriteLine($"🔁 Access token expired/expiring soon ({expiry:O}) — refreshing...");
+        var res = await AuthService.RefreshTokenAsync();
+        Console.WriteLine(res?.Success == true
+        ? "✅ Access token refreshed."
+        : "⚠️ Token refresh failed or not needed.");
+      }
+      else
+      {
+        Console.WriteLine($"🟢 Access token still valid until {expiry:O}");
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"⚠️ Error checking/refreshing access token: {ex.Message}");
+    }
+  }
 
   void DrawerToggle()
   {

@@ -4,17 +4,20 @@ using MyApp.BlazorUI.Services.Interfaces;
 using MyApp.BlazorUI.DTOs.Auth;
 using MyApp.BlazorUI.DTOs;
 using System.Text.Json;
+using Microsoft.JSInterop;
 
 namespace MyApp.BlazorUI.Services
 {
   public class AuthTokenHandler : DelegatingHandler
   {
     private readonly ILocalStorageService _localStorage;
+    private readonly IServiceProvider _services;
     private readonly string _apiBaseUrl = "http://localhost:5099/";
 
-    public AuthTokenHandler(ILocalStorageService localStorage)
+    public AuthTokenHandler(ILocalStorageService localStorage, IServiceProvider services)
     {
       _localStorage = localStorage;
+      _services = services;
     }
 
     // 🔁 Refresh token saat 401
@@ -28,9 +31,9 @@ namespace MyApp.BlazorUI.Services
         accessToken = await _localStorage.GetItemAsync<string>("accessToken");
         refreshToken = await _localStorage.GetItemAsync<string>("refreshToken");
       }
-      catch (InvalidOperationException)
+      catch (InvalidOperationException ex)
       {
-        Console.WriteLine("⚠️ LocalStorage belum siap saat refresh token.");
+        Console.WriteLine($"⚠️ LocalStorage belum siap saat refresh token (interop). {ex}");
         return false;
       }
 
@@ -61,40 +64,34 @@ namespace MyApp.BlazorUI.Services
     {
       string? token = null;
 
-      for (int i = 0; i < 10; i++)
+      try
       {
-        try
-        {
-          token = await _localStorage.GetItemAsync<string>("accessToken");
-          if (!string.IsNullOrEmpty(token))
-            break;
-        }
-        catch (InvalidOperationException)
-        {
-
-        }
-        await Task.Delay(300);
+        token = await _localStorage.GetItemAsync<string>("accessToken");
       }
+      catch (InvalidOperationException ex)
+      {
+        Console.WriteLine($"⚠️ LocalStorage belum siap (interop error). {ex}");
+      }
+
 
       if (!string.IsNullOrEmpty(token))
       {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         Console.WriteLine($"🔐 Token attached: {token.Substring(0, Math.Min(token.Length, 20))}...");
       }
-      else
-      {
-        Console.WriteLine("🚫 Tidak ada token di LocalStorage (mungkin belum login atau JS belum siap).");
-      }
 
       var response = await base.SendAsync(request, cancellationToken);
 
       if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
       {
-        Console.WriteLine("⚠️ Dapat 401 Unauthorized, mencoba refresh token...");
+        Console.WriteLine("🔁 Token expired — refreshing...");
         var refreshed = await RefreshTokenAsync();
         if (!refreshed)
         {
-          Console.WriteLine("❌ Refresh token gagal.");
+          await _localStorage.RemoveItemAsync("accessToken");
+          await _localStorage.RemoveItemAsync("refreshToken");
+          await _localStorage.RemoveItemAsync("expiresAt");
+          Console.WriteLine("🚪 Token refresh failed — user logged out.");
           return response;
         }
 

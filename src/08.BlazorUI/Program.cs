@@ -61,20 +61,23 @@ builder.Services.AddHttpClient<InvoiceService>(client =>
 {
   client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
       ?? "http://localhost:5099/");
-});
+})
+.AddHttpMessageHandler<AuthTokenHandler>();
 
 // 🚫 DashboardService tidak perlu token
 builder.Services.AddHttpClient<DashboardService>(client =>
 {
   client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
       ?? "http://localhost:5099/");
-});
+})
+.AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<MyClassServices>(client =>
 {
   client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]
       ?? "http://localhost:5099/");
-});
+})
+.AddHttpMessageHandler<AuthTokenHandler>();
 
 // Register other services
 builder.Services.AddScoped<IAuthService, AuthService>();

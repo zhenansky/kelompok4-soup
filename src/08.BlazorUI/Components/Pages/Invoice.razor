@@ -3,10 +3,13 @@
 @using MyApp.BlazorUI.Services
 @using MyApp.BlazorUI.Models
 @using MyApp.BlazorUI.Services.Interfaces
+@using MyApp.BlazorUI.Components.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager Navigation
 @inject InvoiceService InvoiceService
 @inject ILocalStorageService LocalStorage
-@inject IAuthService AuthService
+
 
 <style>
   .custom-header {
@@ -46,46 +49,64 @@
   <MudItem Class="px-12 mt-10">
     <MudBreadcrumbs Items="_items" Separator=">"></MudBreadcrumbs>
   </MudItem>
-  <MudItem class="px-14 my-10">
-    <MudText Typo="Typo.h6" Style="color:#4F4F4F; font-weight:600">Menu Invoice</MudText>
-  </MudItem>
-  <MudTable Class="mx-14" T="InvoiceItem" Items="@invoices" Hover="true" Breakpoint="Breakpoint.Sm"
-    RowClassFunc="@RowClassFunc">
-    <HeaderContent>
-      <MudTh Class="custom-header left-cell" style="color:white">No.</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white">No. Invoice</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white">Date</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white">Total Course</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white">Total Price</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white">Action</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-      <MudTd Class="left-cell" DataLabel="No.">@(invoices.IndexOf(context) + 1)</MudTd>
-      <MudTd Class="center-cell" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
-      <MudTd Class="center-cell" DataLabel="Date">
-        @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
-      </MudTd>
-      <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
-      <MudTd Class="center-cell" DataLabel="Total Price">@context.TotalPrice.ToString("C")</MudTd>
-      <MudTd Class="center-cell">
-        <MudButton Class="rounded-lg details-btn" Variant="Variant.Filled" Size="Size.Small" DropShadow="false"
-          OnClick="@(() => ShowDetails(context))">
-          Details
-        </MudButton>
-      </MudTd>
-    </RowTemplate>
-    <NoRecordsContent>
-      <MudText Class="m-3">No invoice found.</MudText>
-    </NoRecordsContent>
-  </MudTable>
-
+  @if (_loading)
+  {
+    <div class="d-flex align-items-center justify-content-center" style="height: 100vh;">
+      <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+      <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
+    </div>
+  }
+  else
+  {
+    <MudItem class="px-14 my-10">
+      <MudText Typo="Typo.h6" Style="color:#4F4F4F; font-weight:600">Menu Invoice</MudText>
+    </MudItem>
+    <MudTable Class="mx-14" T="InvoiceItem" Items="@invoices" Hover="true" Breakpoint="Breakpoint.Sm"
+      RowClassFunc="@RowClassFunc">
+      <HeaderContent>
+        <MudTh Class="custom-header left-cell" style="color:white">No.</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">No. Invoice</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Date</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Total Course</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Total Price</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white">Action</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd Class="left-cell" DataLabel="No.">@(invoices.IndexOf(context) + 1)</MudTd>
+        <MudTd Class="center-cell" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
+        <MudTd Class="center-cell" DataLabel="Date">
+          @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
+        </MudTd>
+        <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
+        <MudTd Class="center-cell" DataLabel="Total Price">@context.TotalPrice.ToString("C")</MudTd>
+        <MudTd Class="center-cell">
+          <MudButton Class="rounded-lg details-btn" Variant="Variant.Filled" Size="Size.Small" DropShadow="false"
+            OnClick="@(() => ShowDetails(context))">
+            Details
+          </MudButton>
+        </MudTd>
+      </RowTemplate>
+      <NoRecordsContent>
+        <MudText Class="m-3">No invoice found.</MudText>
+      </NoRecordsContent>
+    </MudTable>
+  }
 </MudContainer>
 
 @code {
+  private string userName = "";
+  private string userEmail = "";
+  private string userRole = "";
+
   private bool _loading;
   private bool _loaded;
   private int totalInvoices;
   private List<InvoiceItem> invoices = new();
+
+  protected override async Task OnInitializedAsync()
+  {
+    _loading = true;
+  }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
