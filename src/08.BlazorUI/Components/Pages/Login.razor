@@ -4,6 +4,7 @@
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
 
 
 <PageTitle>Login</PageTitle>
@@ -106,7 +107,6 @@
   private async Task Submit()
   {
     form?.Validate();
-
     if (!success)
       return;
 
@@ -121,25 +121,31 @@
       {
         Console.WriteLine("✅ Login Success!");
 
-        // 🟢 Simpan token ke localStorage
+        // Simpan token ke localStorage
         await LocalStorage.SetItemAsync("accessToken", result.Data.AccessToken);
         await LocalStorage.SetItemAsync("refreshToken", result.Data.RefreshToken);
         await LocalStorage.SetItemAsync("expiresAt", result.Data.ExpiresAt);
 
-        Console.WriteLine($"🔐 Token saved: {result.Data.AccessToken.Substring(0, 20)}...");
+        // ✅ Tampilkan snackbar
+        Snackbar.Add("Login Succes, Welcome👋", Severity.Success);
 
-        Navigation.NavigateTo("/", forceLoad: true);
+        // Delay sebentar biar snackbar sempat muncul
+        await Task.Delay(1000);
+
+        Navigation.NavigateTo("/?login=success");
       }
       else
       {
         loginError = result.Message ?? "Login gagal.";
         Console.WriteLine($"❌ Login failed: {loginError}");
+        Snackbar.Add(loginError, Severity.Error);
       }
     }
     catch (Exception ex)
     {
       loginError = "Server error";
       Console.WriteLine($"💥 Exception saat login: {ex.Message}");
+      Snackbar.Add("Something Wrong in the server, Please try again later", Severity.Error);
     }
     finally
     {
@@ -147,6 +153,7 @@
       StateHasChanged();
     }
   }
+
 
 
   private async Task SubmitResendEmail()

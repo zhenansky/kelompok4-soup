@@ -4,6 +4,10 @@
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 
+@inject ISnackbar Snackbar
+
+
+
 <PageTitle>Reset Password</PageTitle>
 
 <MudContainer Class="d-flex flex-column gap-15 align-center"
@@ -129,17 +133,28 @@
       if(result.Success)
       {
       Console.WriteLine("Password reset Success.");
+
+        Snackbar.Add("Password has been reset successfully! Please log in with your new password.", Severity.Success);
+
+        await Task.Delay(1500);
       passwordError = result.Message;
       Navigation.NavigateTo("/password-reset-success");
+        
+      
       }
       else 
       {
-      passwordError = result.Message;
+        passwordError = result.Message;
+        Console.WriteLine($"❌ Password reset failed: {passwordError}");
+
+        // ❌ Snackbar error
+        Snackbar.Add(passwordError, Severity.Error);
       }
     }
     catch(Exception ex)
     { 
       passwordError = $"server error";
+      Snackbar.Add("An unexpected server error occurred. Please try again later.", Severity.Error);
     }
     finally
     {

@@ -5,6 +5,9 @@
 @using MyApp.BlazorUI.DTOs
 @inject IConfiguration Configuration
 @inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+
+@inject NavigationManager Navigation
 
 <PageTitle>Lending Pages</PageTitle>
 
@@ -150,7 +153,20 @@ new StatItem(Number: "30+", Description: "Cooperate with trusted and upscale res
     private string _apiBaseUrl = string.Empty;
     protected override async Task OnInitializedAsync()
     {
+        // ✅ Cek apakah ada query string "login=success"
+        var uri = new Uri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("login", out var status) && status == "success")
+        {
+            await Task.Delay(200);
+
+            // Opsional: hapus query dari URL biar gak muncul terus
+            var cleanUrl = Navigation.Uri.Split('?')[0];
+            Navigation.NavigateTo(cleanUrl, forceLoad: false);
+        }
+
         _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
+
         try
         {
             var categoryResponse = await Http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>("api/categories");
