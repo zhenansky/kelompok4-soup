@@ -3,7 +3,6 @@
 @using MyApp.BlazorUI.Services
 @using MyApp.BlazorUI.DTOs.Auth
 @using Blazored.LocalStorage;
-@inject AuthenticationStateProvider AuthStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService _localStorage
 @inject IAuthService AuthService
 @inject ISnackbar Snackbar
@@ -173,7 +172,7 @@
     }
     catch (Exception ex)
     {
-      Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+      Snackbar.Add($"Terjadi kesalahan", Severity.Error);
       Console.WriteLine($"Logout error: {ex}");
     }
     finally

@@ -2,17 +2,27 @@
 
 @* == USING STATEMENTS == *@
 @using MudBlazor
+@using Blazored.LocalStorage
 @using Microsoft.AspNetCore.Components
 @using System.ComponentModel.DataAnnotations
+@using MyApp.BlazorUI.Services
 @using System.Net.Http.Json
+@using System.Text.Json;
 @using MyApp.BlazorUI.DTOs
+@using MyApp.BlazorUI.Components.Shared
+@using MyApp.BlazorUI.Services.Interfaces
+@using MyApp.BlazorUI.DTOs.Auth
 
 @* == INJECTS == *@
+@inject IAuthService AuthService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject MyApp.BlazorUI.Services.CartService CartService
 @inject HttpClient Http
 @inject NavigationManager NavManager
+@inject ILocalStorageService LocalStorage
+@inject InvoiceService InvoiceService
+
 
 @implements IDisposable
 
@@ -20,8 +30,6 @@
 
 <MudPaper Elevation="0" Class="pt-2" Style="min-height: 100%;">
   <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors" Class="py-4 px-10">
-
-    <MudText Typo="Typo.h6">Item Keranjang</MudText>
 
     <MudPaper Elevation="0" Class="d-flex align-center">
       <MudCheckBox T="bool" @bind-Value="SelectAll" @bind-Value:after="OnSelectAllChanged" Label=" Pilih Semua" />
@@ -73,12 +81,12 @@
     <MudText Typo="Typo.subtitle1" Class="mr-4">Total Price</MudText>
     <MudText Typo="Typo.h6" style="color: #FABC1D;">IDR @_totalPrice.ToString("N0")</MudText>
     <MudSpacer />
-    <MudButton Variant="Variant.Filled" Class="button button-filled rounded-lg" OnClick="@ShowPaymentDialog"
-      Disabled="@(isProcessingPayment || _totalPrice <= 0)">
+    <MudButton Variant="Variant.Filled" Class="button button-filled rounded-lg" Style="width: 14.5rem;"
+      DropShadow="false" OnClick="@ShowPaymentDialog" Disabled="@(isProcessingPayment || _totalPrice <= 0)">
       @if (isProcessingPayment)
       {
         <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
-        <text>Memproses...</text>
+        <text>Processing...</text>
       }
       else
       {
@@ -94,6 +102,8 @@
   bool success;
   string[] errors = { };
   private bool isProcessingPayment = false;
+  string? token = null;
+  private bool _disposed;
 
   private bool SelectAll;
   private decimal _totalPrice => CartItems.Where(i => i.Selected).Sum(i => i.Price);
@@ -144,6 +154,31 @@
   // == LOGIKA PEMBAYARAN E-COMMERCE BARU ==
   // =============================================
 
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender)
+      return;
+
+    if (_disposed) return;
+
+    try
+    {
+      var authState = await AuthService.IsUserAuthenticatedAsync();
+      if (_disposed) return;
+      if (!authState)
+      {
+        NavManager.NavigateTo("/", forceLoad: true);
+      }
+
+      token = await LocalStorage.GetItemAsync<string>(key: "accessToken");
+    }
+    catch (Exception ex)
+    {
+      if (!_disposed)
+        Console.WriteLine("⚠️ LocalStorage belum siap atau tidak tersedia: " + ex.Message);
+    }
+  }
+
   /**
   * @brief Langkah 1: Buka dialog pemilihan metode pembayaran.
 */
@@ -166,7 +201,7 @@
     {
       // Pengguna memilih metode, lanjutkan ke proses pembayaran
       int selectedPaymentId = (int)result.Data;
-      await ProcessPayment(selectedPaymentId);
+      await ProcessPayment();
     }
     else
     {
@@ -178,51 +213,72 @@
   /**
   * @brief Langkah 2: Proses pembayaran setelah metode dipilih.
 */
-  private async Task ProcessPayment(int paymentMethodId)
+  private async Task ProcessPayment()
   {
     isProcessingPayment = true;
     await InvokeAsync(StateHasChanged);
 
     var selectedItems = CartItems.Where(item => item.Selected).ToList();
-    var selectedScheduleIds = selectedItems.Select(item => item.ScheduleId).ToList();
+    var selectedMSId = selectedItems.Select(item => item.MSId).ToList();
 
     // 1. Buat Data Request untuk API
-    var createOrderRequest = new CreateOrderDto(
-    selectedScheduleIds,
-    _totalPrice,
-    paymentMethodId
-    );
+    var createInvoiceRequest = new CreateInvoiceDTO()
+    {
+      MSId = selectedMSId
+    };
 
     // 2. Panggil API Backend
     try
     {
-      var response = await Http.PostAsJsonAsync("api/orders/create", createOrderRequest);
-
-      if (response.IsSuccessStatusCode)
+      if (!string.IsNullOrWhiteSpace(token))
       {
-        // Asumsikan API mengembalikan OrderId
-        var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponseDto>();
-        var newOrderId = paymentResponse?.OrderId ?? "unknown";
+        Console.WriteLine("🔑 Token ditemukan, ambil data invoice...");
 
-        Snackbar.Add("Pesanan berhasil dibuat! (Simulasi)", Severity.Success);
+        var response = await InvoiceService.CreateinvoiceAsync(createInvoiceRequest, token);
 
-        // 3. Kosongkan keranjang (item yang sudah dibayar)
-        foreach (var item in selectedItems)
+        // if create invoice success
+        if (response.Success)
         {
-          CartService.RemoveItem(item);
+          Snackbar.Add("Pesanan berhasil dibuat!", Severity.Success);
+          Console.WriteLine($"📦 Invoice berhasil dibuat. {response}");
+
+          foreach (var item in selectedItems)
+          {
+            CartService.RemoveItem(item);
+          }
+
+          NavManager.NavigateTo($"/purchase-success");
         }
 
-        // 4. Arahkan ke Halaman Sukses dengan OrderId
-        NavManager.NavigateTo($"/purchase-success?orderId={newOrderId}");
+        // if create invoice failed
+        else if (!response.Success && response.Data is JsonElement details)
+        {
+          // Try to navigate into "courses" array
+          if (details.TryGetProperty("courses", out var coursesElement) && coursesElement.ValueKind == JsonValueKind.Array)
+          {
+            var courseNames = coursesElement
+            .EnumerateArray()
+            .Select(c => c.GetProperty("courseName").GetString())
+            .Where(name => !string.IsNullOrWhiteSpace(name));
+
+            var joinedNames = string.Join(", ", courseNames);
+
+            Snackbar.Add($"Course ini sudah pernah dibeli: {joinedNames}", Severity.Error);
+          }
+        }
+        else
+        {
+          Snackbar.Add(response.Message, Severity.Error);
+        }
       }
       else
       {
-        Snackbar.Add("Gagal membuat pesanan di server. Coba lagi.", Severity.Error);
+        Console.WriteLine("🚫 Token tidak tersedia: skip membuat invoice.");
       }
     }
     catch (Exception ex)
     {
-      Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+      Console.WriteLine($"Create invoice gagal: {ex.Message}");
     }
     finally
     {
@@ -232,12 +288,12 @@
 
   public void Dispose()
   {
+    _disposed = true;
     CartService.OnChange -= HandleCartChange;
   }
 }
 
 <style>
-  /* Style Anda sebelumnya */
   body {
     height: 100vh;
   }

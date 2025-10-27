@@ -11,289 +11,291 @@
 
 @if (isLoading)
 {
-    <MudGrid Justify="Justify.Center" Class="pa-10">
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-    </MudGrid>
+  <div class="d-flex align-items-center justify-content-center py-10" style="height: 100%;">
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
+  </div>
 }
 else if (course == null)
 {
-    <MudGrid Justify="Justify.Center" Class="pa-10">
-        <MudText Typo="Typo.h5" Color="Color.Error">Menu tidak ditemukan.</MudText>
-    </MudGrid>
+  <MudGrid Justify="Justify.Center" Class="pa-10 py-10">
+    <MudText Typo="Typo.h5" Color="Color.Error">Menu tidak ditemukan.</MudText>
+  </MudGrid>
 }
 else
 {
-    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge"
-        Class="pa-0 d-flex flex-column justify-center align-center mud-width-full">
-        <MudPaper Class="d-flex flex-column py-10 px-20 mud-width-full">
+  <MudPaper Class="d-flex flex-column py-10 px-20" Elevation="0" Style="width: 100%">
 
-            <MudPaper Class="d-flex flex-row gap-4" Elevation="0">
-                <MudImage Fluid="true" Src="@courseImageUrl" Width="400" Height="266" Alt="@course.Name" Elevation="25"
-                    Class="rounded-none" ObjectFit="ObjectFit.Cover" />
-                <MudPaper Class="d-flex flex-column mud-width-full" Elevation="0">
-                    <MudText Style="color:#828282" Typo="Typo.body1">@course.CategoryName</MudText>
+    <MudPaper Class="d-flex flex-row gap-4" Style="width: 100%" Elevation="0">
+      <MudImage Fluid="true" Src="@courseImageUrl" Width="400" Height="266" Alt="@course.Name" Elevation="25"
+        Class="rounded-none" ObjectFit="ObjectFit.Cover" />
+      <MudPaper Class="d-flex flex-column" Style="width: 100%;" Elevation="0">
+        <MudText Style="color:#828282" Typo="Typo.body1">@course.CategoryName</MudText>
 
-                    <MudText Style="color:black; font-weight:600;" Typo="Typo.h5">@course.Name</MudText>
-                    <MudText Style="color:#5B4947; font-weight:600;" Typo="Typo.h5">
-                        @("IDR " + course.Price.ToString("N0", idCulture))
-                    </MudText>
+        <MudText Style="color:black; font-weight:600;" Typo="Typo.h5">@course.Name</MudText>
+        <MudText Style="color:#5B4947; font-weight:600;" Typo="Typo.h5">
+          @("IDR " + course.Price.ToString("N0", idCulture))
+        </MudText>
 
-                    @* ========================================= *@
-                    @* KODE YANG DISESUIKAN (MudSelect Jadwal) *@
-                    @* ========================================= *@
-                    <MudSelect Style="width:50%;" Class="mt-6" T="int" @bind-Value="selectedScheduleId" FitContent="true"
-                        Label="Select Schedule" Placeholder="Select Schedule" Variant="Variant.Outlined"
-                        Disabled="@(!AvailableSchedules.Any())">
+        @* ========================================= *@
+        @* KODE YANG DISESUIKAN (MudSelect Jadwal) *@
+        @* ========================================= *@
+        <MudSelect Style="max-width: 18.75rem;" Class="mt-6" T="int" @bind-Value="selectedScheduleId"
+          Label="Select Schedule" Placeholder="Select Schedule" Variant="Variant.Outlined"
+          Disabled="@(!AvailableSchedules.Any())">
 
-                        @* Tambahkan opsi "Select Schedule" dengan Value="0" sebagai default/placeholder *@
-                        <MudSelectItem Value="0">Select Schedule</MudSelectItem>
+          @* Tambahkan opsi "Select Schedule" dengan Value="0" sebagai default/placeholder *@
+          <MudSelectItem Value="0">Select Schedule</MudSelectItem>
 
-                        @if (AvailableSchedules.Any())
-                        {
-                            @foreach (var schedule in AvailableSchedules)
-                            {
-                                // Tampilkan tanggal, gunakan Id sebagai nilai
-                                <MudSelectItem Value="@schedule.Id">@schedule.ScheduleDate.ToString("dddd, dd MMMM yyyy")
-                                </MudSelectItem>
-                            }
-                        }
-                        else
-                        {
-                            // Opsi jika tidak ada jadwal tersedia
-                            <MudSelectItem Value="0" Disabled="true">Tidak ada jadwal tersedia</MudSelectItem>
-                        }
-                    </MudSelect>
+          @if (AvailableSchedules.Any())
+          {
+            @foreach (var schedule in AvailableSchedules)
+            {
+              // Tampilkan tanggal, gunakan Id sebagai nilai
+              <MudSelectItem Value="@schedule.Id">@schedule.ScheduleDate.ToString("dddd, dd MMMM yyyy")
+              </MudSelectItem>
+            }
+          }
+          else
+          {
+            // Opsi jika tidak ada jadwal tersedia
+            <MudSelectItem Value="0" Disabled="true">Tidak ada jadwal tersedia</MudSelectItem>
+          }
+        </MudSelect>
 
-                    <MudItem class="d-flex flex-row mud-width-full gap-4 mt-4">
-                        <MudButton Style="width:40%; background-color:white; color:black;" Class="rounded-lg"
-                            Variant="Variant.Outlined" Disabled="@(selectedScheduleId == 0)" @onclick="AddToCart"> @* <-- @onclick di sini sekarang memanggil method void *@
-                            Add to Cart
-                        </MudButton>
+        <MudItem class="d-flex flex-row gap-4 mt-4">
+          <MudButton Class="rounded-lg button button-outline" Style="width: 14.5rem;" Variant="Variant.Outlined"
+            Disabled="@(selectedScheduleId == 0)" @onclick="AddToCart"> @* <-- @onclick di sini sekarang memanggil method void *@
+            Add to Cart
+          </MudButton>
 
-                        <MudButton Style="width:40%; background-color:#FABC1D; color:black;" Class="rounded-lg"
-                            Variant="Variant.Text" Disabled="@(selectedScheduleId == 0)" @onclick="BuyNow">
-                            Buy Now
-                        </MudButton>
-                    </MudItem>
-                </MudPaper>
-            </MudPaper>
-            <MudPaper Elevation="0" Class="d-flex flex-column mt-10 gap-4">
-                <MudText Typo="Typo.h5" Style="font-weight:600">
-                    Description
-                </MudText>
-                <MudText Typo="Typo.body1">
-                    @course.Description
-                </MudText>
-            </MudPaper>
-        </MudPaper>
+          <MudButton Class="rounded-lg button button-filled" Style="width: 14.5rem;" Variant="Variant.Filled"
+            DropShadow="false" Disabled="@(selectedScheduleId == 0)" @onclick="BuyNow">
+            Buy Now
+          </MudButton>
+        </MudItem>
+      </MudPaper>
+    </MudPaper>
+    <MudPaper Elevation="0" Class="d-flex flex-column mt-10 gap-4">
+      <MudText Typo="Typo.h5" Style="font-weight:600">
+        Description
+      </MudText>
+      <MudText Typo="Typo.body1">
+        @course.Description
+      </MudText>
+    </MudPaper>
+  </MudPaper>
 
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="px-3 my-20 px-20">
+  <MudDivider Class="my-2" Style="border-top: 2px solid rgba(0,0,0,0.77); width: 100%;" />
 
-            <MudText Typo="Typo.h5" Align="Align.Center" Class="fw-semibold mt-6 mb-6" Style="color:#5B4947;">
-                Another menu in this class
-            </MudText>
-            <MudGrid Class="my-20" Gutter="3">
-                @foreach (var item in OtherMenuItems)
-                {
+  <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="px-3 my-20 px-20">
 
-                    <MudItem xs="12" sm="6" md="4" lg="4">
-                        <MudCard Class="h-100" Elevation="0" @onclick="() => OnOtherMenuClick(item.Id)" Style="cursor:pointer;">
-                            <MudCardMedia Image="@item.ImageUrl" Height="180" Class="object-cover" />
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="fw-semibold mt-6 mb-6" Style="color:#5B4947;">
+      Another menu in this class
+    </MudText>
+    <MudGrid Class="my-20" Gutter="3">
+      @foreach (var item in OtherMenuItems)
+      {
 
-                            <MudCardContent>
-                                <MudText Typo="Typo.caption">@item.Category</MudText>
-                                <MudText Typo="Typo.h6">@item.Name</MudText>
+        <MudItem xs="12" sm="6" md="4" lg="4">
+          <MudCard Class="h-100" Elevation="0" @onclick="() => OnOtherMenuClick(item.Id)" Style="cursor:pointer;">
+            <MudCardMedia Image="@item.ImageUrl" Height="180" Class="object-cover" />
 
-                                <MudText Class="mt-4" Style="color:#FABC1D;">@item.Price</MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                }
+            <MudCardContent>
+              <MudText Typo="Typo.caption">@item.Category</MudText>
+              <MudText Typo="Typo.h6">@item.Name</MudText>
 
-            </MudGrid>
-        </MudContainer>
-    </MudContainer>
+              <MudText Class="mt-4" Style="color:#FABC1D;">@item.Price</MudText>
+            </MudCardContent>
+          </MudCard>
+        </MudItem>
+      }
+    </MudGrid>
+  </MudContainer>
 }
 
 @code {
-    [Parameter]
-    public int Id { get; set; }
+  [Parameter]
+  public int Id { get; set; }
 
-    private MenuCourseDto? course;
-    private bool isLoading = true;
-    private string courseImageUrl = string.Empty;
-    private CultureInfo idCulture = new CultureInfo("id-ID");
-    private string _apiBaseUrl = string.Empty;
+  private MenuCourseDto? course;
+  private bool isLoading = true;
+  private string courseImageUrl = string.Empty;
+  private CultureInfo idCulture = new CultureInfo("id-ID");
+  private string _apiBaseUrl = string.Empty;
 
-    // --- KODE YANG DISESUIKAN ---
-    private List<ScheduleDto> AvailableSchedules = new List<ScheduleDto>();
-    private int selectedScheduleId = 0; // Tetap 0 sebagai default, yang akan menampilkan "Select Schedule"
-                                        // --- AKHIR PENYESUAIAN ---
+  // --- KODE YANG DISESUIKAN ---
+  private List<MenuCourseScheduleDto> AvailableSchedules = new List<MenuCourseScheduleDto>();
+  private int selectedScheduleId = 0; // Tetap 0 sebagai default, yang akan menampilkan "Select Schedule"
+                                      // --- AKHIR PENYESUAIAN ---
 
-    public record OtherMenu(int Id, string Category, string Name, string Price, string ImageUrl);
-    private List<OtherMenu> OtherMenuItems = new List<OtherMenu>();
+  public record OtherMenu(int Id, string Category, string Name, string Price, string ImageUrl);
+  private List<OtherMenu> OtherMenuItems = new List<OtherMenu>();
 
-    protected override async Task OnParametersSetAsync()
+  protected override async Task OnParametersSetAsync()
+  {
+    isLoading = true;
+    _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
+    AvailableSchedules.Clear();
+    selectedScheduleId = 0; // Reset ke 0 setiap kali halaman dimuat
+
+    try
     {
-        isLoading = true;
-        _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
-        AvailableSchedules.Clear();
-        selectedScheduleId = 0; // Reset ke 0 setiap kali halaman dimuat
+      var response = await Http.GetFromJsonAsync<ApiResponse<MenuCourseDto>>($"api/menucourses/{Id}");
+      if (response?.Success == true && response.Data != null)
+      {
+        course = response.Data;
+        courseImageUrl = string.IsNullOrEmpty(course.Image) ? "" : $"{_apiBaseUrl}/{course.Image.TrimStart('/')}";
 
-        try
-        {
-            var response = await Http.GetFromJsonAsync<ApiResponse<MenuCourseDto>>($"api/menucourses/{Id}");
-            if (response?.Success == true && response.Data != null)
-            {
-                course = response.Data;
-                courseImageUrl = string.IsNullOrEmpty(course.Image) ? "" : $"{_apiBaseUrl}/{course.Image.TrimStart('/')}";
+        await LoadAllSchedules(Id);
 
-                await LoadAllSchedules();
-
-                await LoadOtherMenus(course.CategoryName, course.Id);
-            }
-            else
-            {
-                course = null;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Gagal memuat detail menu: {ex.Message}");
-            course = null;
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        await LoadOtherMenus(course.CategoryName, course.Id);
+      }
+      else
+      {
+        course = null;
+      }
     }
-
-    private async Task LoadAllSchedules()
+    catch (Exception ex)
     {
-        try
-        {
-            var scheduleResponse = await Http.GetFromJsonAsync<ApiResponse<List<ScheduleDto>>>("api/schedules");
-            if (scheduleResponse?.Success == true && scheduleResponse.Data != null)
-            {
-                AvailableSchedules = scheduleResponse.Data
-                .OrderBy(s => s.ScheduleDate)
-                .ToList();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Gagal memuat semua jadwal: {ex.Message}");
-        }
+      Console.WriteLine($"Gagal memuat detail menu: {ex.Message}");
+      course = null;
     }
-
-    private async Task LoadOtherMenus(string categoryName, int currentMenuId)
+    finally
     {
-        try
-        {
-            var courseResponse = await Http.GetFromJsonAsync<ApiResponse<List<MenuCourseDto>>>("api/menucourses");
-            if (courseResponse?.Success == true && courseResponse.Data != null)
-            {
-                OtherMenuItems = courseResponse.Data
-                .Where(dto => dto.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase) && dto.Id != currentMenuId)
-                .Take(6)
-                .Select(dto => new OtherMenu(
-                dto.Id,
-                dto.CategoryName,
-                dto.Name,
-                "IDR " + dto.Price.ToString("N0", idCulture),
-                string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}"
-                ))
-                .ToList();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Gagal memuat menu lainnya: {ex.Message}");
-        }
+      isLoading = false;
     }
+  }
 
-    private void OnOtherMenuClick(int menuId)
+  private async Task LoadAllSchedules(int id)
+  {
+    try
     {
-        NavManager.NavigateTo($"/menu/detail/{menuId}", forceLoad: true);
+      var scheduleResponse = await
+      Http.GetFromJsonAsync<ApiResponse<List<MenuCourseScheduleDto>>>($"api/menucourses/{id}/schedules");
+      if (scheduleResponse?.Success == true && scheduleResponse.Data != null)
+      {
+        AvailableSchedules = scheduleResponse.Data
+        .Where(s => s.ScheduleDate.Date >= DateTime.Today)
+        .OrderBy(s => s.ScheduleDate)
+        .ToList();
+      }
     }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Gagal memuat semua jadwal: {ex.Message}");
+    }
+  }
 
-    // =============================================
-    // == FUNGSI BARU UNTUK E-COMMERCE (DIPERBAIKI) ==
-    // =============================================
+  private async Task LoadOtherMenus(string categoryName, int currentMenuId)
+  {
+    try
+    {
+      var courseResponse = await Http.GetFromJsonAsync<ApiResponse<List<MenuCourseDto>>>("api/menucourses");
+      if (courseResponse?.Success == true && courseResponse.Data != null)
+      {
+        OtherMenuItems = courseResponse.Data
+        .Where(dto => dto.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase) && dto.Id != currentMenuId)
+        .Take(6)
+        .Select(dto => new OtherMenu(
+        dto.Id,
+        dto.CategoryName,
+        dto.Name,
+        "IDR " + dto.Price.ToString("N0", idCulture),
+        string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}"
+        ))
+        .ToList();
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Gagal memuat menu lainnya: {ex.Message}");
+    }
+  }
 
-    /**
-    * @brief Method void ini khusus untuk event @onclick tombol "Add to Cart".
+  private void OnOtherMenuClick(int menuId)
+  {
+    NavManager.NavigateTo($"/menu/detail/{menuId}", forceLoad: true);
+  }
+
+  // =============================================
+  // == FUNGSI BARU UNTUK E-COMMERCE (DIPERBAIKI) ==
+  // =============================================
+
+  /**
+  * @brief Method void ini khusus untuk event @onclick tombol "Add to Cart".
 */
-    private void AddToCart()
-    {
-        // Panggil method logika internal dan abaikan hasilnya
-        AddToCartInternal();
-    }
+  private void AddToCart()
+  {
+    // Panggil method logika internal dan abaikan hasilnya
+    AddToCartInternal();
+  }
 
-    /**
-    * @brief Method ini berisi logika inti dan mengembalikan status sukses/gagal.
-    * @return true jika berhasil ditambahkan, false jika gagal.
+  /**
+  * @brief Method ini berisi logika inti dan mengembalikan status sukses/gagal.
+  * @return true jika berhasil ditambahkan, false jika gagal.
 */
-    private bool AddToCartInternal()
+  private bool AddToCartInternal()
+  {
+    if (course == null) return false;
+
+    // 1. Validasi apakah jadwal sudah dipilih
+    if (selectedScheduleId == 0)
     {
-        if (course == null) return false;
-
-        // 1. Validasi apakah jadwal sudah dipilih
-        if (selectedScheduleId == 0)
-        {
-            Snackbar.Add("Silakan pilih jadwal terlebih dahulu.", Severity.Warning);
-            return false;
-        }
-
-        // 2. Dapatkan detail jadwal yang dipilih
-        var selectedSchedule = AvailableSchedules.FirstOrDefault(s => s.Id == selectedScheduleId);
-        if (selectedSchedule == null)
-        {
-            Snackbar.Add("Jadwal yang dipilih tidak valid.", Severity.Error);
-            return false;
-        }
-
-        // 3. Buat objek CartItem (pastikan DTO/model ini ada di proyek Anda)
-        var newItem = new CartItem
-        {
-            MenuCourseId = course.Id,
-            ScheduleId = selectedSchedule.Id,
-            Name = course.Name,
-            Category = course.CategoryName,
-            Price = course.Price,
-            ImageUrl = courseImageUrl,
-            Schedule = selectedSchedule.ScheduleDate,
-            Selected = true // Langsung tandai sebagai terpilih di keranjang
-        };
-
-        // 4. Panggil CartService untuk menambahkan item
-        try
-        {
-            CartService.AddItem(newItem);
-            Snackbar.Add($"{course.Name} telah ditambahkan ke keranjang.", Severity.Success);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            // Tangani jika ada error (misal: item sudah ada, dari logika service Anda)
-            Snackbar.Add($"Gagal menambahkan: {ex.Message}", Severity.Error);
-            return false;
-        }
+      Snackbar.Add("Silakan pilih jadwal terlebih dahulu.", Severity.Warning);
+      return false;
     }
 
-    /**
-    * @brief Menambahkan item ke keranjang lalu langsung mengarahkan ke halaman checkout.
+    // 2. Dapatkan detail jadwal yang dipilih
+    var selectedSchedule = AvailableSchedules.FirstOrDefault(s => s.Id == selectedScheduleId);
+    if (selectedSchedule == null)
+    {
+      Snackbar.Add("Jadwal yang dipilih tidak valid.", Severity.Error);
+      return false;
+    }
+
+    // 3. Buat objek CartItem (pastikan DTO/model ini ada di proyek Anda)
+    var newItem = new CartItem
+    {
+      MSId = selectedSchedule.Id,
+      MenuCourseId = course.Id,
+      ScheduleId = selectedSchedule.ScheduleId,
+      Name = course.Name,
+      Category = course.CategoryName,
+      Price = course.Price,
+      ImageUrl = courseImageUrl,
+      Schedule = selectedSchedule.ScheduleDate,
+      Selected = true // Langsung tandai sebagai terpilih di keranjang
+    };
+
+    // 4. Panggil CartService untuk menambahkan item
+    try
+    {
+      CartService.AddItem(newItem);
+      Snackbar.Add($"{course.Name} telah ditambahkan ke keranjang.", Severity.Success);
+      return true;
+    }
+    catch (Exception ex)
+    {
+      // Tangani jika ada error (misal: item sudah ada, dari logika service Anda)
+      Snackbar.Add($"Gagal menambahkan: {ex.Message}", Severity.Error);
+      return false;
+    }
+  }
+
+  /**
+  * @brief Menambahkan item ke keranjang lalu langsung mengarahkan ke halaman checkout.
 */
-    private void BuyNow()
-    {
-        // 1. Coba tambahkan ke keranjang (panggil method internal)
-        bool addedSuccessfully = AddToCartInternal();
+  private void BuyNow()
+  {
+    // 1. Coba tambahkan ke keranjang (panggil method internal)
+    bool addedSuccessfully = AddToCartInternal();
 
-        // 2. Jika berhasil, navigasi ke halaman checkout
-        if (addedSuccessfully)
-        {
-            NavManager.NavigateTo("/checkout");
-        }
-        // Jika gagal, AddToCartInternal() sudah menampilkan Snackbar error.
+    // 2. Jika berhasil, navigasi ke halaman checkout
+    if (addedSuccessfully)
+    {
+      NavManager.NavigateTo("/checkout");
     }
+    // Jika gagal, AddToCartInternal() sudah menampilkan Snackbar error.
+  }
 }

@@ -8,6 +8,7 @@
 @using System.Security.Claims
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject TokenService TokenService
 @inject Blazored.LocalStorage.ILocalStorageService _localStorage
 @inject IAuthService AuthService
 @inject ISnackbar Snackbar
@@ -119,62 +120,6 @@
   bool _drawerOpen = true;
   string title = "Dashboard";
 
-  private DateTime? GetJwtExpiry(string? token)
-  {
-    if (string.IsNullOrEmpty(token)) return null;
-
-    var handler = new JwtSecurityTokenHandler();
-    if (!handler.CanReadToken(token)) return null;
-
-    var jwt = handler.ReadJwtToken(token);
-    var exp = jwt.Payload.Expiration;
-    return exp.HasValue
-    ? DateTimeOffset.FromUnixTimeSeconds(exp.Value).UtcDateTime
-    : null;
-  }
-
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (!firstRender) return;
-
-    try
-    {
-      // ✅ Check if user has an access token
-      var token = await _localStorage.GetItemAsync<string>("accessToken");
-      if (string.IsNullOrWhiteSpace(token))
-      {
-        Console.WriteLine("ℹ️ No access token found — user not logged in, skip refresh.");
-        return;
-      }
-
-      // 🕓 Parse access token expiry (from JWT)
-      var expiry = GetJwtExpiry(token);
-      if (expiry == null)
-      {
-        Console.WriteLine("⚠️ Invalid access token format — skip refresh.");
-        return;
-      }
-
-      // ✅ Only refresh if token expired or expiring in <10 seconds
-      if (DateTime.UtcNow >= expiry.Value.AddSeconds(-10))
-      {
-        Console.WriteLine($"🔁 Access token expired/expiring soon ({expiry:O}) — refreshing...");
-        var res = await AuthService.RefreshTokenAsync();
-        Console.WriteLine(res?.Success == true
-        ? "✅ Access token refreshed."
-        : "⚠️ Token refresh failed or not needed.");
-      }
-      else
-      {
-        Console.WriteLine($"🟢 Access token still valid until {expiry:O}");
-      }
-    }
-    catch (Exception ex)
-    {
-      Console.WriteLine($"⚠️ Error checking/refreshing access token: {ex.Message}");
-    }
-  }
-
   private string? CurrentUrl;
 
   void DrawerToggle() => _drawerOpen = !_drawerOpen;
@@ -189,6 +134,49 @@
       }
     }
   };
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender)
+      return;
+
+    var token = await _localStorage.GetItemAsync<string>("accessToken");
+
+    var authState = await TokenService.GetCustomAuthenticationStateAsync(token);
+    var user = authState.User;
+
+    var _isLoggedIn = user.Identity?.IsAuthenticated ?? false;
+    var _userRole = user.FindFirst("role")?.Value ?? "User";
+
+    // 🚨 Check if not admin
+    if (!_isLoggedIn || !_userRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+    {
+      // Redirect to home if not admin
+      Navigation.NavigateTo("/", forceLoad: true);
+      return; // ⛔ stop further execution
+    }
+
+    // 🔄 Listen for authentication state changes
+    if (AuthStateProvider is CustomAuthStateProvider customProvider)
+    {
+      customProvider.AuthenticationStateChanged += async task =>
+      {
+        var state = await task;
+        var changedUser = state.User;
+        _isLoggedIn = changedUser.Identity?.IsAuthenticated ?? false;
+        _userRole = changedUser.FindFirst("role")?.Value ?? "User";
+
+        // 🚨 Handle role change dynamically
+        if (!_isLoggedIn || !_userRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+        {
+          Navigation.NavigateTo("/", forceLoad: true);
+          return;
+        }
+
+        await InvokeAsync(StateHasChanged);
+      };
+    }
+  }
 
 
   private void UpdateCurrentUrl(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)

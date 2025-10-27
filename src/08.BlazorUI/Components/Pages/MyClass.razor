@@ -6,6 +6,8 @@
 @using MyApp.BlazorUI.Components.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
 @inject MyClassServices MyClassServices
 @inject ILocalStorageService LocalStorage
 @inject IConfiguration Config
@@ -72,6 +74,12 @@
 
     try
     {
+      var authState = await AuthService.IsUserAuthenticatedAsync();
+      if (!authState)
+      {
+        Navigation.NavigateTo("/", forceLoad: true);
+      }
+
       // 2️⃣ Coba baca token dari LocalStorage
       string? token = null;
       try

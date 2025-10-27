@@ -6,6 +6,8 @@
 @using MyApp.BlazorUI.Components.Models
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using MyApp.BlazorUI.DTOs.Auth
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 @inject InvoiceService InvoiceService
 @inject ILocalStorageService LocalStorage
@@ -51,7 +53,7 @@
   </MudItem>
   @if (_loading)
   {
-    <div class="d-flex align-items-center justify-content-center" style="height: 100vh;">
+    <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
       <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
       <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
     </div>
@@ -78,7 +80,7 @@
           @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
         </MudTd>
         <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
-        <MudTd Class="center-cell" DataLabel="Total Price">@context.TotalPrice.ToString("C")</MudTd>
+        <MudTd Class="center-cell" DataLabel="Total Price">IDR @context.TotalPrice.ToString("N0")</MudTd>
         <MudTd Class="center-cell">
           <MudButton Class="rounded-lg details-btn" Variant="Variant.Filled" Size="Size.Small" DropShadow="false"
             OnClick="@(() => ShowDetails(context))">
@@ -117,6 +119,12 @@
 
     try
     {
+      var authState = await AuthService.IsUserAuthenticatedAsync();
+      if (!authState)
+      {
+        Navigation.NavigateTo("/", forceLoad: true);
+      }
+
       // 2️⃣ Coba baca token dari LocalStorage
       string? token = null;
       try

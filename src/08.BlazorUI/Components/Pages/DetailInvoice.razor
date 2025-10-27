@@ -37,54 +37,62 @@
     <MudBreadcrumbs Items="_items" Separator=">">
     </MudBreadcrumbs>
   </MudItem>
+  @if (_loading)
+  {
+    <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
+      <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+      <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
+    </div>
+  }
+  else
+  {
+    <MudItem class="px-14 my-10 d-flex flex-column">
+      <MudText Typo="Typo.h6" Style="font-weight: 600;">Detail Invoice</MudText>
 
-  <MudItem class="px-14 my-10 d-flex flex-column">
-    <MudText Typo="Typo.h6" Style="font-weight: 600;">Detail Invoice</MudText>
-
-    <MudGrid Class="mt-4">
-      <MudItem xs="12" sm="6" Class="d-flex gap-8">
-        <MudItem>
-          <MudText>No. Invoice:</MudText>
-          <MudText>Date:</MudText>
+      <MudGrid Class="mt-4">
+        <MudItem xs="12" sm="6" Class="d-flex gap-8">
+          <MudItem>
+            <MudText>No. Invoice:</MudText>
+            <MudText>Date:</MudText>
+          </MudItem>
+          <MudItem>
+            <MudText>@(InvoiceDetail?.NoInvoice ?? "-")</MudText>
+            <MudText>
+              @(InvoiceDetail?.Date != DateTime.MinValue
+                          ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("en-EN"))
+                          : "-")
+            </MudText>
+          </MudItem>
         </MudItem>
-        <MudItem>
-          <MudText>@(InvoiceDetail?.NoInvoice ?? "-")</MudText>
-          <MudText>
-            @(InvoiceDetail?.Date != DateTime.MinValue
-                        ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("en-EN"))
-                        : "-")
+
+        <MudItem xs="12" sm="6" Class="d-flex justify-end align-end gap-8">
+          <MudText Typo="Typo.body1" Style="font-weight:700;">Total Price</MudText>
+          <MudText Typo="Typo.body1" Style="font-weight:700;">
+            @("IDR " + (InvoiceDetail?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
           </MudText>
         </MudItem>
-      </MudItem>
+      </MudGrid>
+    </MudItem>
 
-      <MudItem xs="12" sm="6" Class="d-flex justify-end align-end gap-8">
-        <MudText Typo="Typo.body1" Style="font-weight:700;">Total Price</MudText>
-        <MudText Typo="Typo.body1" Style="font-weight:700;">
-          @("IDR " + (InvoiceDetail?.TotalPrice ?? 0).ToString("N0", new System.Globalization.CultureInfo("id-ID")))
-        </MudText>
-      </MudItem>
-    </MudGrid>
-  </MudItem>
-
-  <MudTable T="InvoiceCourseData" Items="@Details" Hover="true" Bordered="false" Striped="true"
-    RowClassFunc="RowClassFunc" Class="mx-14 mt-4">
-    <HeaderContent>
-      <MudTh Class="custom-header left-cell" style="color:white; width:5%">No.</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white; width:45%">Course Name</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white; width:15%">Type</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white; width:20%">Schedule</MudTh>
-      <MudTh Class="custom-header center-cell" style="color:white; width:15%">Price</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-      <MudTd Class="left-cell" DataLabel="No.">@(Details.IndexOf(context) + 1)</MudTd>
-      <MudTd Class="center-cell" DataLabel="Course Name">@context.Name</MudTd>
-      <MudTd Class="center-cell" DataLabel="Type">@context.Category</MudTd>
-      <MudTd Class="center-cell" DataLabel="Schedule">@context.ScheduleDate.ToString("dddd, dd MMMM yyyy", new
-                System.Globalization.CultureInfo("en-EN"))</MudTd>
+    <MudTable T="InvoiceCourseData" Items="@Details" Hover="true" Bordered="false" Striped="true"
+      RowClassFunc="RowClassFunc" Class="mx-14 mt-4">
+      <HeaderContent>
+        <MudTh Class="custom-header left-cell" style="color:white; width:5%">No.</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white; width:45%">Course Name</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white; width:15%">Type</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white; width:20%">Schedule</MudTh>
+        <MudTh Class="custom-header center-cell" style="color:white; width:15%">Price</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd Class="left-cell" DataLabel="No.">@(Details.IndexOf(context) + 1)</MudTd>
+        <MudTd Class="center-cell" DataLabel="Course Name">@context.Name</MudTd>
+        <MudTd Class="center-cell" DataLabel="Type">@context.Category</MudTd>
+        <MudTd Class="center-cell" DataLabel="Schedule">@context.ScheduleDate.ToString("dddd, dd MMMM yyyy", new
+                  System.Globalization.CultureInfo("en-EN"))</MudTd>
       <MudTd Class="center-cell" DataLabel="Price">IDR @context.Price.ToString("N0")</MudTd>
     </RowTemplate>
   </MudTable>
-
+    }
 </MudContainer>
 
 @code {
@@ -96,6 +104,11 @@
   private InvoiceDetailData InvoiceDetail = new();
   private List<InvoiceCourseData> Details = new();
 
+  protected override async Task OnInitializedAsync()
+  {
+    _loading = true;
+  }
+
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (!firstRender || _loaded)
@@ -105,6 +118,12 @@
 
     try
     {
+      var authState = await AuthService.IsUserAuthenticatedAsync();
+      if (!authState)
+      {
+        Navigation.NavigateTo("/", forceLoad: true);
+      }
+
       // 2️⃣ Coba baca token dari LocalStorage
       string? token = null;
       try

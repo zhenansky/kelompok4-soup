@@ -1,7 +1,9 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using MyApp.BlazorUI.Models;
+using MyApp.BlazorUI.DTOs;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace MyApp.BlazorUI.Services
 {
@@ -158,6 +160,78 @@ namespace MyApp.BlazorUI.Services
       }
     }
 
+    // 🔹 Buat invoice
+    public async Task<ApiResponse<object>?> CreateinvoiceAsync(CreateInvoiceDTO createInvoiceDTO, string? token = null)
+    {
+      try
+      {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+          Console.WriteLine("🚫 Token kosong sebelum kirim request create invoice.");
+          return null;
+        }
 
+        var request = new HttpRequestMessage(HttpMethod.Post, $"api/Invoices");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // ✅ Serialize DTO to JSON and attach to request body
+        var jsonContent = JsonSerializer.Serialize(createInvoiceDTO);
+        request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        Console.WriteLine($"🔎 Request create invoice dengan token prefix: {token.Substring(0, Math.Min(token.Length, 15))}...");
+        Console.WriteLine($"📦 Body JSON: {jsonContent}");
+
+        var response = await _httpClient.SendAsync(request);
+        var serverResponse = await response.Content.ReadAsStringAsync();
+
+
+
+        if (!response.IsSuccessStatusCode)
+        {
+          Console.WriteLine($"❌ Gagal membuat invoice. Status: {response.StatusCode}\nServer response: {serverResponse}");
+
+          // Try to parse error details
+          ErrorResponse? error = null;
+          try
+          {
+            error = JsonSerializer.Deserialize<ErrorResponse>(
+                serverResponse,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+          }
+          catch
+          {
+            Console.WriteLine("⚠️ Could not parse error response as ErrorResponse.");
+          }
+
+          if (error != null)
+          {
+            Console.WriteLine($"🧩 ErrorCode: {error.ErrorCode}");
+            Console.WriteLine($"📢 Message: {error.Message}");
+            Console.WriteLine($"📚 Details: {error.Details}");
+          }
+
+          // You can return the error so UI can show details
+          return new ApiResponse<object>
+          {
+            Success = false,
+            Message = error?.Message ?? "Unknown error occurred.",
+            Data = error?.Details
+          };
+        }
+
+        Console.WriteLine($"🧾 Create invoice Response: {serverResponse}");
+
+        var invoiceResponse = JsonSerializer.Deserialize<ApiResponse<object>>(
+           serverResponse,
+           new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        return invoiceResponse;
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"❌ Error Create Invoice: {ex.Message}");
+        return null;
+      }
+    }
   }
 }
