@@ -6,7 +6,6 @@
 @inject IConfiguration Configuration
 @inject NavigationManager NavManager
 @inject ISnackbar Snackbar
-
 @inject NavigationManager Navigation
 
 <PageTitle>Lending Pages</PageTitle>
@@ -19,8 +18,7 @@
         </MudText>
         <MudText Typo="Typo.h6" Class="hero-subtitle">
             We are able to awaken your cooking skills to become a classy chef
-            and ready
-            to dive into the professional world
+            and ready to dive into the professional world
         </MudText>
     </MudContainer>
 </MudPaper>
@@ -43,7 +41,7 @@
 </MudContainer>
 
 @* More Professional Class Section *@
-<MudContainer MaxWidth="MaxWidth.False" Class="my-8">
+<MudContainer Class="my-8">
     <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-10 title-text">
         More Professional Classes
     </MudText>
@@ -61,8 +59,8 @@
             {
                 <MudItem xs="12" sm="6" md="4">
                     @* UBAH OnCardClick UNTUK MENGGUNAKAN ID *@
-                    <MudCard Elevation="0" @onclick="() => OnCardClick(item)" Style="cursor:pointer;">
-                        <MudCardMedia Image="@item.Image" Height="180" Alt="@item.Title" />
+                    <MudCard Elevation="1" @onclick="() => OnCardClick(item)" Class="card-hover my-card-style">
+                        <MudCardMedia Image="@item.Image" Height="250" Alt="@item.Title" />
                         <MudCardContent>
                             <MudText Typo="Typo.caption" Class="text-grey">@item.Category</MudText>
                             <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@item.Title</MudText>
@@ -79,22 +77,19 @@
 
 @* Benefit Section *@
 <MudPaper Class="my-8 bg-benefit position-relative">
-    <MudContainer MaxWidth="MaxWidth.False" Class="benefit-container">
-        <MudText Typo="Typo.h3" Class="mb-2 text-white ms-7">Gets your best benefit</MudText>
-        <MudText Typo="Typo.body1" Class="max-w text-white ms-7">
-            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,
-            totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt
-            explicabo.
-            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni
-            dolores eos qui ratione voluptatem sequi nesciunt.
-            Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non
-            numquam.
+    <MudContainer MaxWidth="MaxWidth.Large" Class="benefit-container">
+        <MudText Typo="Typo.h2" Class="mb-2 text-white" Align="Align.Center">Gets your best benefit</MudText>
+        <MudText Typo="Typo.body1" Class="text-white" Align="Align.Center">
+            Our curriculum is designed to take you from enthusiast to expert.
+            Explore a diverse range of global cuisines, understand the science behind flavor, and practice hands-on in
+            our state-of-the-art kitchen. You'll learn more than just recipes; you'll learn the art and discipline
+            necessary to excel in the professional culinary world.
         </MudText>
     </MudContainer>
 </MudPaper>
 
 @* Food Type Section *@
-<MudContainer MaxWidth="MaxWidth.False" Class="food-container">
+<MudContainer Class="food-container">
     <MudText Typo="Typo.h5" Align="Align.Center" Class="title-text">
         More food type as you can choose
     </MudText>
@@ -111,8 +106,9 @@
             @foreach (FoodType food in FoodTypes)
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
-                    <MudCard Class="" Elevation="0" @onclick="() => OnCategoryClick(food)" Style="cursor:pointer;">
-                        <MudCardMedia Image="@food.Image" Height="120" Alt="@food.Name" />
+                    <MudCard Elevation="1" @onclick="() => OnCategoryClick(food)" Class="card-hover"
+                        Style="height: 200px; width: 230px;">
+                        <MudCardMedia Image="@food.Image" Alt="@food.Name" />
                         <MudCardContent>
                             <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-4" Style="font-size:24px;">
                                 @food.Name
@@ -130,8 +126,6 @@
 
     public record FoodType(string Image, string Name);
     public record StatItem(string Number, string Description);
-
-    @* 2. UBAH METODE INI *@
     private void OnCardClick(FoodItem item)
     {
         NavManager.NavigateTo($"/menu/detail/{item.Id}");
@@ -221,7 +215,7 @@ new StatItem(Number: "30+", Description: "Cooperate with trusted and upscale res
 
     .hero-subtitle {
         color: white;
-        max-width: 600px;
+        max-width: 900px;
         margin: 0 auto;
     }
 
@@ -249,7 +243,6 @@ new StatItem(Number: "30+", Description: "Cooperate with trusted and upscale res
         text-align: center;
         padding: 1.5rem;
     }
-
 
     .card-hover {
         cursor: pointer;
@@ -281,7 +274,7 @@ new StatItem(Number: "30+", Description: "Cooperate with trusted and upscale res
     .title-text {
         font-weight: 600;
         margin-bottom: 20px;
-        color: grey;
+        color: rgb(0, 0, 0);
     }
 
     .food-grid {
@@ -310,6 +303,11 @@ new StatItem(Number: "30+", Description: "Cooperate with trusted and upscale res
         flex-direction: column;
         justify-content: center;
         min-height: 260px;
-        padding: 0 1.5rem;
+    }
+
+    .my-card-style {
+        width: 100%;
+        margin: auto;
+        height: 100%;
     }
 </style>

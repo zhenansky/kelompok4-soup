@@ -8,7 +8,7 @@ Write-Host "==============================================" -ForegroundColor Cya
 $PROJECT_KEY = "kelompok4-soup"
 $PROJECT_NAME = "kelompok4-soup"
 $SONAR_HOST = "http://localhost:9000"
-$SONAR_TOKEN = "sqp_ff29184ca0644ad7f76e82aa1f93c94227dfba09"
+$SONAR_TOKEN = "sqa_238883e03d389ef23f732f7b56e0a6210b63505e"
 
 # Check if SonarQube is running
 Write-Host ""

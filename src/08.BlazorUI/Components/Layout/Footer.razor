@@ -1,38 +1,47 @@
+@inject HttpClient Http
+@inject IConfiguration Configuration
+
 <footer>
-  @*Product *@
   <MudPaper Elevation="0" Class="footer-section">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge">
       <MudGrid>
 
-        @*About *@
+        @* About *@
         <MudItem xs="12" sm="6" md="4">
           <MudText Typo="Typo.h6" Class="footer-title mb-2">
             About Us
           </MudText>
           <MudText Class="footer-text">
-            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
-            laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
-            architecto
-            beatae vitae dicta sunt explicabo.
+            Kami percaya bahwa setiap orang bisa menjadi koki hebat. Misi kami adalah membangkitkan potensi kuliner Anda
+            melalui kelas-kelas profesional yang diajar oleh koki berpengalaman. Bergabunglah dengan kami untuk mengubah
+            hasrat Anda menjadi keahlian.
           </MudText>
         </MudItem>
 
-        @*Produk *@
+        @* Kategori (Menggantikan Produk) *@
         <MudItem xs="12" sm="6" md="3">
-          <MudText Typo="Typo.h6" Class="footer-title mb-2">Produk</MudText>
+          <MudText Typo="Typo.h6" Class="footer-title mb-2">Kategori</MudText>
           <ul class="produk-list">
-            @foreach (string produk in ProdukList)
+            @* Iterasi daftar Kategori yang diambil dari API *@
+            @foreach (var category in Categories)
             {
-              <li>@produk</li>
+              <li>
+                @* Menggunakan MudLink agar bisa diklik dan bernavigasi *@
+                <MudLink Href="@($"/menu/{category.Name}")" Color="Color.Inherit" Underline="Underline.Hover">
+                  @category.Name
+                </MudLink>
+              </li>
             }
           </ul>
         </MudItem>
 
-        @*Address & Contact *@
+        @* Address & Contact *@
         <MudItem xs="12" sm="12" md="5">
           <MudText Typo="Typo.h6" Class="footer-title mb-2">Address</MudText>
           <MudText Typo="Typo.body1" Class="mb-2">
-            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.
+            @* Teks alamat yang sudah diperbarui *@
+            Jl. Kuliner No. 123, Dapur Kencana,
+            Jakarta Selatan, Indonesia 12345
           </MudText>
 
           <MudText Typo="Typo.h6" Class="footer-title mb-2">Contact Us</MudText>
@@ -52,10 +61,42 @@
 </footer>
 
 @code {
-  private List<string> ProdukList = new()
-{
-"Electric","LCOC","Offroad","SUV","Heartback","MPV","Sedan","Truck"
-};
+  // 1. Daftar untuk menampung kategori dari API
+  private List<CategoryDto> Categories = new();
+  private string _apiBaseUrl = string.Empty;
+
+  // 2. Metode OnInitializedAsync untuk mengambil data dari API saat komponen dimuat
+  protected override async Task OnInitializedAsync()
+  {
+    _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
+    try
+    {
+      var response = await Http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>($"{_apiBaseUrl}/api/categories");
+      if (response?.Success == true && response.Data != null)
+      {
+        Categories = response.Data;
+      }
+    }
+    catch (Exception ex)
+    {
+      // Jika gagal, tampilkan di konsol (jangan hentikan rendering footer)
+      Console.WriteLine($"Failed to fetch categories for footer: {ex.Message}");
+    }
+  }
+
+  // 3. Kelas DTO (Data Transfer Object) yang diperlukan untuk API call
+  public class ApiResponse<T>
+  {
+    public bool Success { get; set; }
+    public T Data { get; set; }
+    public string Message { get; set; }
+  }
+
+  public class CategoryDto
+  {
+    public int Id { get; set; }
+    public string Name { get; set; }
+  }
 }
 
 <style>
@@ -109,6 +150,7 @@
     justify-content: center;
   }
 
+  /* Ini adalah style list untuk Kategori */
   .produk-list {
     list-style-type: disc;
     padding-left: 20px;
@@ -117,5 +159,19 @@
     -webkit-columns: 2;
     -moz-columns: 2;
     column-gap: 1.5rem;
+  }
+
+  /* Mengatur warna link di daftar kategori */
+  .produk-list li a {
+    color: #ffffff;
+    /* Warna teks putih */
+    text-decoration: none;
+    /* Hapus garis bawah default */
+  }
+
+  /* Efek hover untuk link */
+  .produk-list li a:hover {
+    text-decoration: underline;
+    /* Tampilkan garis bawah saat hover */
   }
 </style>
