@@ -10,7 +10,8 @@
 
 <PageTitle>Payment Method</PageTitle>
 
-<MudPaper Elevation="2" Class="payment-container">
+<MudPaper Elevation="1" Class="payment-container"
+  Style="max-height: calc(100vh - 5rem); overflow-y: auto; border-radius: 0;">
   <div class="header-section">
     <MudText Typo="Typo.h5" Class="title">Payment Method</MudText>
     <MudButton OnClick="OpenDialogAddPaymentAsync" Variant="Variant.Filled" Class="btn-add">
@@ -19,7 +20,8 @@
   </div>
 
   <MudTable Items="@Payments" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-    LoadingProgressColor="Color.Info" Class="payment-table">
+    LoadingProgressColor="Color.Info" Dense="true" Class="payment-table rounded-lg shadow-sm border" Elevation="1"
+    Style="min-width: 600px;">
     <HeaderContent>
       <MudTh Class="t">Id</MudTh>
       <MudTh Class="t">Name</MudTh>
@@ -31,8 +33,11 @@
     <RowTemplate>
       <MudTd Class="t">@context.Id</MudTd>
       <MudTd Class="t">@context.Name</MudTd>
-      <MudTd Class="t">
-        <MudImage Src="@context.Logo" Width="40" Height="40" Class="rounded" />
+      <MudTd class="t">
+        @if (!string.IsNullOrEmpty(context.Logo))
+        {
+          <MudImage Src="@PaymentService.GetFullImageUrl(context.Logo)" Width="40" Height="40" />
+        }
       </MudTd>
       <MudTd Class="t">
         @if (context.Status == PaymentStatus.Active)
@@ -59,6 +64,7 @@
     </PagerContent>
   </MudTable>
 </MudPaper>
+
 
 @code {
   private bool _loading;
@@ -108,7 +114,8 @@
   {
     var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
     var parameters = new DialogParameters { { "Payment", payment } };
-    var dialog = await DialogService.ShowAsync<EditPaymentDialog>("Edit Payment", parameters: parameters, options: options);
+    var dialog = await DialogService.ShowAsync<EditPaymentDialog>("Edit Payment", parameters: parameters, options:
+    options);
     var result = await dialog.Result;
 
     if (result?.Data is true)
@@ -158,10 +165,13 @@
 <style>
   .payment-container {
     padding: 1.5rem;
-    margin: 0 auto;
-    max-width: 1000px;
-    overflow: hidden;
+    margin: 0;
+    width: 100%;
+    height: calc(100vh - 5rem);
+    /* penuh tinggi layar, dikurangi navbar */
+    overflow-y: auto;
     background-color: #fff;
+    box-sizing: border-box;
   }
 
   .header-section {
@@ -172,8 +182,7 @@
   }
 
   .payment-table {
-    max-height: 60vh;
-    overflow-y: auto;
+    width: 100%;
   }
 
   .btn-add {

@@ -69,7 +69,7 @@ namespace MyApp.WebAPI.Controllers
             {
                 if (!ModelState.IsValid)
                     return BadRequest(new { success = false, message = "Invalid data." });
-                
+
                 if (dto.LogoFile == null || dto.LogoFile.Length == 0)
                     return BadRequest(new { success = false, message = "Logo file is required." });
 

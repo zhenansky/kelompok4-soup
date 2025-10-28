@@ -220,41 +220,86 @@
 <style>
     .category-container {
         padding: 1.5rem;
-        margin: 0 auto;
-        max-width: 1000px;
-        overflow: hidden;
+        margin: 0;
+        width: 100%;
+        height: calc(100vh - 5rem);
+        /* penuh tinggi layar, dikurangi navbar */
+        overflow-y: auto;
         background-color: #fff;
+        box-sizing: border-box;
     }
 
     .header-section {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .title {
+        font-weight: 600;
+        color: #333;
     }
 
     .category-table {
-        max-height: 60vh;
+        max-height: 65vh;
         overflow-y: auto;
+        border-radius: 10px;
     }
 
+    .mud-table {
+        border-collapse: separate;
+        border-spacing: 0 6px;
+    }
+
+    .mud-table-row {
+        background-color: #fafafa;
+        border-radius: 8px;
+    }
+
+    .mud-table-head th {
+        background-color: #eaffea !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #333;
+        text-align: center;
+        vertical-align: middle;
+        padding: 0.75rem;
+    }
+
+    .t {
+        text-align: center;
+        vertical-align: middle !important;
+        padding: 0.75rem;
+    }
+
+    /* Tombol-tombol */
     .btn-add {
         background-color: green;
         color: white;
         text-transform: none;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 8px;
     }
 
     .btn-edit {
         background-color: #fabc1d;
         color: white;
         text-transform: none;
-        margin-right: 0.3rem;
+        margin-right: 0.4rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
     }
 
     .btn-delete {
         background-color: red;
         color: white;
         text-transform: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
     }
 
     .btn-add:hover {
@@ -269,12 +314,13 @@
         background-color: darkred;
     }
 
-    .mud-table-head th {
-        background-color: #dbffdd !important;
+    /* Tambahan spacing antar tombol agar tidak nempel */
+    .mud-button {
+        margin: 0.1rem;
     }
 
-    .t {
-        text-align: center;
-        vertical-align: middle !important;
+    /* Agar tabel punya jarak dari pinggir card */
+    .mud-table-container {
+        padding: 0 0.5rem;
     }
 </style>

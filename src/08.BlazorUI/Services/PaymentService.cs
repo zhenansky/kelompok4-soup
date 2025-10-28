@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Forms;
 using MyApp.BlazorUI.Components.Models;
 using System.Net.Http.Json;
 
@@ -20,28 +21,65 @@ namespace MyApp.BlazorUI.Services
             return response?.Data ?? new List<PaymentModel>();
         }
 
-        public async Task<PaymentModel> CreatePaymentAsync(PaymentModel payment)
+        public async Task<PaymentModel> CreatePaymentAsync(PaymentModel payment, IBrowserFile logoFile)
         {
-            var response = await _http.PostAsJsonAsync(Endpoint, payment);
+            using var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(payment.Name ?? ""), "Name");
+            content.Add(new StringContent(payment.Status.ToString()), "Status");
+
+
+            if (logoFile != null)
+            {
+                var stream = logoFile.OpenReadStream(5 * 1024 * 1024); // max 5MB
+                content.Add(new StreamContent(stream), "LogoFile", logoFile.Name);
+            }
+
+            var response = await _http.PostAsync(Endpoint, content);
             response.EnsureSuccessStatusCode();
 
             var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<PaymentModel>>();
             return apiResponse!.Data;
         }
 
-        public async Task<PaymentModel> UpdatePaymentAsync(PaymentModel payment)
+        public async Task<PaymentModel> UpdatePaymentAsync(PaymentModel payment, IBrowserFile? logoFile)
         {
-            var response = await _http.PutAsJsonAsync($"{Endpoint}/{payment.Id}", payment);
+            using var content = new MultipartFormDataContent();
+
+            content.Add(new StringContent(payment.Name ?? ""), "Name");
+            content.Add(new StringContent(payment.Status.ToString()), "Status");
+
+            if (logoFile != null)
+            {
+                var stream = logoFile.OpenReadStream(5 * 1024 * 1024); // max 5MB
+                content.Add(new StreamContent(stream), "LogoFile", logoFile.Name);
+            }
+
+            var response = await _http.PutAsync($"{Endpoint}/{payment.Id}", content);
             response.EnsureSuccessStatusCode();
 
             var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<PaymentModel>>();
             return apiResponse!.Data;
         }
+
 
         public async Task<bool> DeletePaymentAsync(int id)
         {
             var response = await _http.DeleteAsync($"{Endpoint}/{id}");
             return response.IsSuccessStatusCode;
+        }
+
+        public string GetFullImageUrl(string logoPath)
+        {
+            if (string.IsNullOrEmpty(logoPath)) return string.Empty;
+            if (logoPath.StartsWith("http")) return logoPath;
+
+            var baseUrl = "http://localhost:5099";
+            // kalau tidak ada folder di path, tambahkan "payment-logos/"
+            if (!logoPath.Contains("/"))
+                logoPath = $"payment-logos/{logoPath}";
+
+            return $"{baseUrl.TrimEnd('/')}/{logoPath.TrimStart('/')}";
         }
     }
 
