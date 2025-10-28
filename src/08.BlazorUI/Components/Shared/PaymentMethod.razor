@@ -1,200 +1,132 @@
 @using MudBlazor
-@using System.Net.Http.Json
-@using MyApp.BlazorUI.DTOs
+@using MyApp.BlazorUI.Components.Models
+@using MyApp.BlazorUI.Services
 @inject IConfiguration Configuration
-@inject HttpClient Http
-@inject ILogger<PaymentMethod> Logger
+@inject PaymentService PaymentService
+@inject ISnackbar Snackbar
+
 
 <MudDialog>
   <TitleContent>
-    <MudText Typo="Typo.h6" Align="Align.Center">Select Payment Method</MudText>
+    <MudText Typo="Typo.h6">Select Payment Method</MudText>
   </TitleContent>
+
   <DialogContent>
-    @if (_isLoading)
+   @if (_loading)
     {
-      <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+      <div class="d-flex align-items-center justify-content-center">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+      </div>
     }
     else if (!string.IsNullOrEmpty(_errorMessage))
     {
-      <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+      <div class="d-flex align-items-center justify-content-center">
+        <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+      </div>
     }
     else
     {
       <MudStack Spacing="2">
-        @foreach (var method in PaymentMethods)
+        @foreach (var method in Payments)
         {
-          <MudItem>
-            <div class="payment-option @(SelectedPaymentId == method.PaymentMethodId ? "selected-method" : "")"
-              @onclick="@(() => SetSelectedMethod(method.PaymentMethodId))">
-              <div class="icon-circle">
-                <img src="@GetFullLogoUrl(method.Logo)" class="payment-icon" />
-              </div>
-              <MudText Class="payment-name">@method.Name</MudText>
-            </div>
-          </MudItem>
+          @if(method.Status == PaymentStatus.Active)
+          {
+            <MudItem>
+              <MudPaper Elevation="0"
+                Class=@($"d-flex justify-start gap-6 {(SelectedMethod == method.Id ? "selected-method" : "")}")>
+                <MudButton class="d-flex justify-start" Style="width: 100%;" OnClick="@(() => SetSelectedMethod(method.Id))">
+                  <MudImage Src="@($"{Configuration["ApiBaseUrl"]}/payment-logos/{method.Logo}")" Class="mr-4" Width="40" Height="40" />
+                  <MudText Style="font-weight: 500; font-size: 18px;">@method.Name</MudText>
+                </MudButton>
+              </MudPaper>
+            </MudItem>
+          }
         }
       </MudStack>
     }
   </DialogContent>
+
   <DialogActions>
-    <div class="mud-dialog-actions d-flex justify-center mud-dialog-actions">
-      <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel" Class="action-btn cancel-btn">
-        Cancel
-      </MudButton>
-      <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="ConfirmPayNow"
-        Disabled="@(SelectedPaymentId == null || _isLoading)" Class="action-btn pay-btn ml-3" Style="color:black;">
-        Pay Now
-      </MudButton>
-    </div>
+    <MudButton Variant="Variant.Outlined" OnClick="Cancel" Class="button button-outline rounded-lg">
+      Cancel
+    </MudButton>
+    <MudButton Variant="Variant.Filled" OnClick="ConfirmPayNow" DropShadow="false"
+      Disabled="@(SelectedMethod == null)" Class="button button-filled rounded-lg">
+      Pay Now
+    </MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter]
-  public dynamic? MudDialog { get; set; }
-
-  // State untuk komponen
-  private List<PaymentMethodDto> PaymentMethods = new();
-  private int? SelectedPaymentId { get; set; }
-  private bool _isLoading = true;
+  [CascadingParameter] IMudDialogInstance? MudDialogObj { get; set; }
+  private List<PaymentModel> Payments = new List<PaymentModel>();
+  private int? SelectedMethod { get; set; }
+  private bool _loading;
   private string? _errorMessage;
-  private string? ApiBaseUrl;
 
-  /**
-  * @brief Ambil data dari Backend saat dialog diinisialisasi.
-*/
   protected override async Task OnInitializedAsync()
   {
-    ApiBaseUrl = Configuration["ApiBaseUrl"];
+    await LoadPaymentsAsync();
+  }
 
+  private async Task LoadPaymentsAsync()
+  {
+    _loading = true;
     try
     {
-      // Panggil API Backend Anda untuk mendapatkan daftar metode pembayaran
-      var response = await Http.GetFromJsonAsync<ApiResponse<List<PaymentMethodDto>>>("api/payment-methods");
-      if (response != null && response.Success)
-      {
-        PaymentMethods = response.Data; // Mengambil list dari properti .Data
-      }
-      else
-      {
-        _errorMessage = response?.Message ?? "Gagal memuat metode pembayaran.";
-      }
+      Payments = await PaymentService.GetPaymentsAsync();
     }
     catch (Exception ex)
     {
-      Logger.LogError(ex, "Error fetching payment methods");
-      _errorMessage = "Terjadi kesalahan saat menghubungi server.";
+      Console.WriteLine($"❌ Failed to load payments: {ex.Message}");
+      _errorMessage = "Gagal memuat metode pembayaran.";
     }
     finally
     {
-      _isLoading = false;
+      _loading = false;
+      StateHasChanged();
     }
   }
 
-  private string GetFullLogoUrl(string? logoFileName)
+
+  private void SetSelectedMethod(int method) => SelectedMethod = method;
+
+  private void SelectMethod(int? method)
   {
-    if (string.IsNullOrEmpty(logoFileName) || string.IsNullOrEmpty(ApiBaseUrl))
+    if (MudDialogObj is not null)
     {
-      return string.Empty; // Atau gambar placeholder
+      try { 
+        MudDialogObj.Close(DialogResult.Ok(method)); 
+      } catch(Exception ex) {
+        Snackbar.Add("Gagal membayar.", Severity.Error);
+        Console.WriteLine($"error pay: {ex}");
+      }
     }
-
-    // Menggabungkan: "http://localhost:5099/" + "payment-logos/" + "gopay.svg"
-    return $"{ApiBaseUrl.TrimEnd('/')}/payment-logos/{logoFileName}";
   }
 
-  /**
-  * @brief Simpan ID yang dipilih
-*/
-  private void SetSelectedMethod(int methodId)
-  {
-    SelectedPaymentId = methodId;
-  }
+  private void Cancel() => MudDialogObj.Cancel();
 
-  private void Cancel()
-  {
-    MudDialog?.Cancel();
-  }
 
-  /**
-  * @brief Kembalikan ID (int) yang dipilih ke CheckOut.razor
-*/
   private void ConfirmPayNow()
   {
-    if (SelectedPaymentId != null)
+    if (SelectedMethod == null)
     {
-      // Kembalikan ID (int) sebagai hasil dialog
-      MudDialog?.Close(DialogResult.Ok(SelectedPaymentId.Value));
+      Snackbar.Add("Pilih metode pembayaran.", Severity.Info);
+      return;
     }
+
+    SelectMethod(SelectedMethod);
   }
 }
 
 <style>
-  .payment-option {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 10px 8px;
-    border-radius: 8px;
-    transition: background-color 0.12s ease;
-  }
-
-  .payment-option:hover {
-    background-color: #f5f5f5;
-  }
-
-  .payment-option.selected-method {
-    background-color: #fff6df;
-    border: 1px solid #f2b705;
-  }
-
-  .icon-circle {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    border-radius: 50%;
-    background: #f6f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-  }
-
-  .payment-icon {
-    width: 20px;
-    height: 20px;
-    display: block;
-    margin: 0 auto;
-    max-height: 20px;
-  }
-
-  .payment-name {
-    font-size: 16px;
-    color: rgba(0, 0, 0, 0.85);
-  }
-
-  .action-btn {
-    min-width: 100px;
-    border-radius: 8px;
-    font-weight: 500;
-  }
-
-  .cancel-btn {
-    border: 1px solid #4b2e2e;
-    color: #4b2e2e;
-    background: #fff;
-  }
-
-  .pay-btn {
-    background-color: #f2b705;
-    color: #000;
-    font-weight: 600;
+  .selected-method {
+    background-color: #FABC1D;
   }
 
   .mud-dialog-actions {
-    justify-content: center !important;
-    margin-top: 16px;
-    margin-bottom: 16px;
+    justify-content: space-between !important;
+    margin: 1rem;
     gap: 12px;
   }
 

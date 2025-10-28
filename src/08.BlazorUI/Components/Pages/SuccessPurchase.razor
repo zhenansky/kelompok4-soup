@@ -1,71 +1,71 @@
 @page "/purchase-success"
 @layout EmptyLayout
-@using MudBlazor
-@inject NavigationManager NavigationManager
+@using MyApp.BlazorUI.Services.Interfaces
+@using MyApp.BlazorUI.DTOs.Auth
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.False" Class="pa-0 ma-0" Style="position: relative; min-height: 100vh;">
-
-  <MudImage Src="images/logo.svg" Alt="Company Logo" Class="top-left-logo" />
-
-  <MudPaper Elevation="0" Class="d-flex flex-column align-center justify-center" Style="min-height: 90vh;">
-
-    <MudImage Src="images/SuccessPurchase.svg" Alt="Purchase Successful" Width="250" Class="mb-6" />
-
-    <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Style="font-weight: 600;">
-      Purchase Successfully
-    </MudText>
-
-    <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Inherit" Class="mb-8" Style="font-weight: 400;">
-      Horay!! Let's cook and become a professional cheff
-    </MudText>
-
-    <MudStack Row="true" Spacing="4">
-      <MudButton Variant="Variant.Outlined" Size="Size.Large" OnClick="NavigateToHome" Class="action-button"
-        Style="border-color: #E0E0E0; color: black; text-transform: none; font-weight: 600;">
+<MudPaper Elevation="0" Width="100vw" Height="100vh" Class="d-flex flex-column justify-center align-center gap-10">
+  <MudImage Src="/success.svg" Width="250" Height="250" />
+  <MudPaper Elevation="0" Class="d-flex flex-column justify center align-center gap-2">
+    <MudText Typo="Typo.h5" Class="text-title">Purchase Successfully</MudText>
+    <MudText Typo="Typo.body1" Class="text-body">Horay!! Let's cook and become a professional cheff</MudText>
+  </MudPaper>
+  <MudStack Row="true" Spacing="4">
+    <MudLink Href="/">
+      <MudButton Variant="Variant.Outlined" Class="button button-outline" StartIcon="@Icons.Material.Filled.Home">
         Back to Home
       </MudButton>
-
-      <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Large" OnClick="NavigateToInvoice"
-        Class="action-button" Style="color: black; text-transform: none; font-weight: 600;">
-        <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Class="mr-2" />
+    </MudLink>
+    <MudLink Href="/invoice">
+      <MudButton Variant="Variant.Filled" DropShadow="false" Class="button button-filled"
+        StartIcon="@Icons.Material.Filled.ArrowForward">
         Open Invoice
       </MudButton>
-    </MudStack>
-  </MudPaper>
-
-</MudContainer>
+    </MudLink>
+  </MudStack>
+</MudPaper>
 
 @code {
-  // Ganti dengan path gambar yang sesuai di proyek Anda
-  private const string LogoPath = "images/your-logo.png"; // Contoh: "/images/logo.svg"
-  private const string SuccessImagePath = "images/success-image.png"; // Contoh: "/images/success.svg"
-
-  private void NavigateToHome()
+  protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    // Navigasi ke halaman utama
-    NavigationManager.NavigateTo("/");
-  }
+    if (!firstRender)
+      return;
 
-  private void NavigateToInvoice()
-  {
-    // Navigasi ke halaman invoice (contoh)
-    NavigationManager.NavigateTo("/invoice/123");
+    var authState = await AuthService.IsUserAuthenticatedAsync();
+    if (!authState)
+    {
+      Navigation.NavigateTo("/", forceLoad: true);
+    }
   }
 }
 
 <style>
-  .top-left-logo {
-    position: absolute;
-    top: 24px;
-    left: 32px;
-    width: 120px;
-    /* Sesuaikan ukuran logo */
-    height: auto;
+  .text-title {
+    font-weight: 500;
+    font-size: 24px;
   }
 
-  .action-button {
-    border-radius: 8px;
-    padding: 10px 24px;
-    font-size: 1rem;
+  .text-body {
+    font-weight: 400;
+    font-size: 16px;
+  }
+
+  .button {
+    width: 10.875rem;
+    height: 3.125rem;
+    color: #5B4947;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 15px;
+    text-transform: none;
+  }
+
+  .button-filled {
+    background-color: #FABC1D;
+  }
+
+  .button:hover {
+    background-color: #FABC1D;
   }
 </style>

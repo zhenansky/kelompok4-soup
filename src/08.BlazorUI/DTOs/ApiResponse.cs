@@ -51,6 +51,15 @@ namespace MyApp.BlazorUI.DTOs
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
   }
 
+  public class ErrorResponse
+  {
+    public string? ErrorCode { get; set; }
+    public string? Message { get; set; }
+    public object? Details { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string? TraceId { get; set; }
+  }
+
   /// <summary>
   /// Non-generic API Response
   /// Purpose: For endpoints that don't return specific data

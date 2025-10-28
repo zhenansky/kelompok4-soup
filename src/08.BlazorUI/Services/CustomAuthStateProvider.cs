@@ -22,29 +22,28 @@ namespace MyApp.BlazorUI.Services
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-      var identity = new ClaimsIdentity();
-
       try
       {
-        // 🔹 Tunggu 0.5 detik untuk memastikan LocalStorage siap
-        await Task.Delay(500);
-
         var token = await _localStorage.GetItemAsync<string>("accessToken");
 
-        if (!string.IsNullOrEmpty(token))
-        {
-          var claims = JwtParser.ParseClaimsFromJwt(token);
-          identity = new ClaimsIdentity(claims, "jwt");
-        }
-      }
-      catch (InvalidOperationException)
-      {
-        // JS interop belum siap
-        await Task.Delay(200);
-      }
+        if (string.IsNullOrWhiteSpace(token))
+          return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
-      var user = new ClaimsPrincipal(identity);
-      return new AuthenticationState(user);
+        var claims = JwtParser.ParseClaimsFromJwt(token);
+        if (!claims.Any())
+        {
+          Console.WriteLine("⚠️ No valid claims from token");
+          return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        }
+
+        var identity = new ClaimsIdentity(claims, "jwt");
+        return new AuthenticationState(new ClaimsPrincipal(identity));
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"❌ AuthStateProvider error: {ex.Message}");
+        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+      }
     }
 
 

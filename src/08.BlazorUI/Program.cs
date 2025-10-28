@@ -34,6 +34,7 @@ builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<InvoiceService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<MyClassServices>();
+builder.Services.AddScoped<TokenService>();
 
 // Blazored LocalStorage (for token storage)
 builder.Services.AddBlazoredLocalStorage();

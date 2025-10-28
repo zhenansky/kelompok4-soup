@@ -38,7 +38,6 @@ namespace MyApp.BlazorUI.Services
         await _localStorage.SetItemAsync("accessToken", res.Data.AccessToken);
         await _localStorage.SetItemAsync("refreshToken", res.Data.RefreshToken);
         await _localStorage.SetItemAsync("expiresAt", res.Data.ExpiresAt);
-        await _localStorage.SetItemAsync("email", res.Data.Email);
       }
       catch (InvalidOperationException)
       {
@@ -59,7 +58,6 @@ namespace MyApp.BlazorUI.Services
         await _localStorage.RemoveItemAsync("accessToken");
         await _localStorage.RemoveItemAsync("refreshToken");
         await _localStorage.RemoveItemAsync("expiresAt");
-        await _localStorage.RemoveItemAsync("email");
       }
       catch (InvalidOperationException)
       {

@@ -1,5 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using MyApp.BlazorUI.Services
+@using MyApp.BlazorUI.Services.Interfaces
+@using System.IdentityModel.Tokens.Jwt;
+@using Blazored.LocalStorage;
+@using System.Timers;
 @inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+@inject TokenService TokenService
+
 
 <Router AppAssembly="typeof(Program).Assembly">
   <Found Context="routeData">
@@ -42,3 +51,175 @@
     </LayoutView>
   </NotFound>
 </Router>
+
+@code {
+  private Timer? _tokenCheckTimer;
+  private bool _isDisposed = false;
+
+  protected override async void OnAfterRender(bool firstRender)
+  {
+    if (firstRender)
+    {
+      _ = InvokeAsync(async () => await CheckTokenAsync());
+      StartTokenCheckTimer();
+    }
+  }
+
+  private void StartTokenCheckTimer()
+  {
+    // 🕓 Run every 1 minute (or adjust as needed)
+    _tokenCheckTimer = new Timer(50_000);
+    _tokenCheckTimer.Elapsed += async (_, _) =>
+    {
+      if (_isDisposed) return;
+
+      await InvokeAsync(async () =>
+  {
+      if (_isDisposed) return;
+      await CheckTokenAsync();
+    });
+    };
+    _tokenCheckTimer.AutoReset = true;
+    _tokenCheckTimer.Enabled = true;
+
+    Console.WriteLine("🕓 Token check timer started (every 1 min).");
+  }
+
+  private async Task CheckTokenAsync()
+  {
+    try
+    {
+      // 🔑 Retrieve tokens from local storage
+      var accessToken = await _localStorage.GetItemAsync<string>("accessToken");
+      var refreshToken = await _localStorage.GetItemAsync<string>("refreshToken");
+      var expiresAtString = await _localStorage.GetItemAsync<string>("expiresAt");
+
+      if (_isDisposed) return; // Prevent after circuit is closed
+
+      // 🚫 Basic missing check
+      if (string.IsNullOrWhiteSpace(accessToken) ||
+      string.IsNullOrWhiteSpace(refreshToken) ||
+      string.IsNullOrWhiteSpace(expiresAtString))
+      {
+        Console.WriteLine("🚫 Missing token or expiry info — forcing logout.");
+        await ForceLogoutAsync("Missing or invalid token data.");
+        StopTokenCheckTimer();
+        return;
+      }
+
+      // ✅ Validate access token
+      var accessValidation = TokenService.ValidateJwtToken(accessToken);
+      if (!accessValidation.IsValid)
+      {
+        Console.WriteLine($"🚫 Invalid access token: {accessValidation.ErrorMessage}");
+        await ForceLogoutAsync("Invalid access token format.");
+        StopTokenCheckTimer();
+        return;
+      }
+
+      // ✅ Validate refresh-token expiry (stored expiresAt)
+      if (!DateTime.TryParse(expiresAtString, out var refreshExpiry))
+      {
+        Console.WriteLine("⚠️ Invalid refresh token expiry format — forcing logout.");
+        await ForceLogoutAsync("Invalid refresh token expiry format.");
+        StopTokenCheckTimer();
+        return;
+      }
+
+      // 🚫 If refresh token is expired — logout immediately
+      if (DateTime.UtcNow >= refreshExpiry)
+      {
+        Console.WriteLine($"🚫 Refresh token expired at {refreshExpiry:O} — forcing logout.");
+        await ForceLogoutAsync("Refresh token expired.");
+        StopTokenCheckTimer();
+        return;
+      }
+
+      // 🕓 If access token expired or expiring soon — refresh it
+      if (accessValidation.IsExpired || DateTime.UtcNow >= accessValidation.Expiry?.AddSeconds(-10))
+      {
+        Console.WriteLine($"🔁 Access token expired/expiring soon ({accessValidation.Expiry:O}) — refreshing...");
+
+        var res = await AuthService.RefreshTokenAsync();
+        if (res?.Success == true)
+        {
+          Console.WriteLine("✅ Access token refreshed successfully.");
+        }
+        else
+        {
+          Console.WriteLine($"⚠️ Token refresh failed: {res?.Message}");
+          await ForceLogoutAsync("Token refresh failed or invalid.");
+          StopTokenCheckTimer();
+          return;
+        }
+      }
+      else
+      {
+        Console.WriteLine($"🟢 Access token valid until {accessValidation.Expiry:O}");
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"⚠️ Token check error: {ex.Message}");
+      if (!_isDisposed)
+      {
+        await ForceLogoutAsync("Unexpected token error.");
+      }
+
+      StopTokenCheckTimer();
+    }
+  }
+
+  private async Task ForceLogoutAsync(string reason)
+  {
+    if (_isDisposed)
+      return;
+
+    Console.WriteLine($"🚪 Logging out user. Reason: {reason}");
+
+    try
+    {
+      await AuthService.LogoutAsync();
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"⚠️ Logout API failed: {ex.Message}");
+    }
+
+    if (_isDisposed) return;
+
+    await _localStorage.RemoveItemAsync("accessToken");
+    await _localStorage.RemoveItemAsync("refreshToken");
+    await _localStorage.RemoveItemAsync("expiresAt");
+
+    StopTokenCheckTimer();
+
+    try
+    {
+      await InvokeAsync(StateHasChanged);
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"⚠️ UI update failed: {ex.Message}");
+    }
+  }
+
+  private void StopTokenCheckTimer()
+  {
+    if (_tokenCheckTimer != null)
+    {
+      _tokenCheckTimer.Stop();
+      _tokenCheckTimer.Dispose();
+      _tokenCheckTimer = null;
+      Console.WriteLine("🛑 Token check timer stopped.");
+    }
+  }
+
+  public void Dispose()
+  {
+    _isDisposed = true;
+    StopTokenCheckTimer();
+    Console.WriteLine("🧹 MainLayout disposed, timer stopped.");
+  }
+
+}

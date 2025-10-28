@@ -33,7 +33,7 @@ namespace MyApp.BlazorUI.Services
       }
       catch (InvalidOperationException ex)
       {
-        Console.WriteLine($"⚠️ LocalStorage belum siap saat refresh token (interop). {ex}");
+        Console.WriteLine($"⚠️ LocalStorage belum siap saat refresh token (interop). {ex.Message}");
         return false;
       }
 
@@ -66,11 +66,13 @@ namespace MyApp.BlazorUI.Services
 
       try
       {
+        await Task.Delay(500);
+
         token = await _localStorage.GetItemAsync<string>("accessToken");
       }
       catch (InvalidOperationException ex)
       {
-        Console.WriteLine($"⚠️ LocalStorage belum siap (interop error). {ex}");
+        Console.WriteLine($"⚠️ LocalStorage belum siap (interop error). {ex.Message}");
       }
 
 
