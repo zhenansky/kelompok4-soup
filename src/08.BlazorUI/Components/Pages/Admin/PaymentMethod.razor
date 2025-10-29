@@ -21,7 +21,7 @@
 
   <MudTable Items="@Payments" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
     LoadingProgressColor="Color.Info" Dense="true" Class="payment-table rounded-lg shadow-sm border" Elevation="1"
-    Style="min-width: 600px;">
+    Style="min-width: 600px;" RowsPerPage="5">
     <HeaderContent>
       <MudTh Class="t">Id</MudTh>
       <MudTh Class="t">Name</MudTh>
@@ -60,7 +60,7 @@
     </RowTemplate>
 
     <PagerContent>
-      <MudTablePager />
+      <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50, 100, int.MaxValue }" />
     </PagerContent>
   </MudTable>
 </MudPaper>

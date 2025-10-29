@@ -24,11 +24,11 @@ namespace MyApp.WebAPI.Controllers
             => Ok(await _userService.GetUserByIdAsync(id));
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromForm] CreateUserRequest request)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
             => Ok(await _userService.CreateUserAsync(request));
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromForm] UpdateUserRequest request)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
             => Ok(await _userService.UpdateUserAsync(id, request));
 
         [HttpDelete("{id:int}")]
