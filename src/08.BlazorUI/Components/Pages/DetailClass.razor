@@ -339,7 +339,7 @@ else
     await InvokeAsync(StateHasChanged);
 
     List<int> selectedMSId = new List<int>();
-    selectedMSId.Add(Id);
+    selectedMSId.Add(selectedScheduleId);
 
     // 1. Buat Data Request untuk API
     var createInvoiceRequest = new CreateInvoiceDTO()
@@ -388,6 +388,7 @@ else
       else
       {
         Console.WriteLine("🚫 Token tidak tersedia: skip membuat invoice.");
+        Snackbar.Add("You must to login first to purchase a course", Severity.Warning);
       }
     }
     catch (Exception ex)
