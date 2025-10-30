@@ -73,15 +73,63 @@ namespace MyApp.WebAPI.Data
       if (!context.Categories.Any())
       {
        context.Categories.AddRange(
-           new Category { Name = "Asian", Image = "Uploads/asian.svg", Description = "Embark on a culinary journey across the diverse continent of Asia. Explore authentic flavors from the bustling street food stalls of Thailand to the refined noodle houses of Japan, featuring everything from savory stir-fries to rich, aromatic, and spicy curries.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Cold Drink", Image = "Uploads/cold_drink.svg", Description = "Quench your thirst and refresh your day with our extensive selection of cold beverages. Choose from pure, freshly squeezed fruit juices, iced coffees, creamy milkshakes, or sparkling sodas to perfectly complement your meal.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Cookies", Image = "Uploads/cookies1.svg", Description = "Indulge your sweet tooth with our delightful assortment of freshly baked cookies. Discover everything from classic chocolate chip to crispy, buttery creations, each one perfect for a comforting snack or as a companion to your afternoon tea or coffee.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Desert", Image = "Uploads/desert.svg", Description = "End your meal on a high note with our exquisite selection of desserts. From rich, decadent chocolate lava cakes to light and creamy panna cottas, our sweet treats are crafted to provide the perfect, indulgent conclusion to your dining experience.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Eastern", Image = "Uploads/eastern.svg", Description = "Savor the rich and aromatic flavors of the Middle East. This category features dishes defined by exotic spices, grilled meats, and savory dips, offering a truly appetizing experience that transports you to an Eastern bazaar.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Hot Drink", Image = "Uploads/hot_drink.svg", Description = "Warm your body and soothe your soul with our comforting collection of hot beverages. Whether you need a robust, premium-roast coffee to start your day or a calming herbal tea to unwind, we have the perfect hot drink for any mood.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Junkfood", Image = "Uploads/junkfood.svg", Description = "Get your fix of quick, practical, and delicious comfort food. This selection is perfect for when you're on the go or craving a satisfying classic, featuring juicy burgers, crispy french fries, pizza, and other favorites.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Category { Name = "Western", Image = "Uploads/western.svg", Description = "Experience the timeless culinary classics of the West. This category features everything from perfectly cooked, juicy steaks and al dente pastas smothered in rich sauces to fresh, crisp salads and hearty sandwiches.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
-        );
+           new Category {
+        Name = "Asian",
+        Image = "Uploads/asian.svg",
+        Description = "Embark on a culinary journey across the diverse continent of Asia. Explore authentic flavors from the bustling street food stalls of Thailand to the refined noodle houses of Japan, featuring everything from savory stir-fries to rich, aromatic, and spicy curries.\n\nThis culinary tradition is built on a foundation of balance, masterfully blending sweet, sour, salty, bitter, and umami. Staples like rice and noodles are paired with powerful aromatics such as ginger, garlic, and soy, creating a complex yet harmonious flavor profile in every dish.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Cold Drink",
+        Image = "Uploads/cold_drink.svg",
+        Description = "Quench your thirst and refresh your day with our extensive selection of cold beverages. Choose from pure, freshly squeezed fruit juices, iced coffees, creamy milkshakes, or sparkling sodas to perfectly complement your meal.\n\nBeyond simple refreshment, this category is constantly evolving. We embrace global trends, offering everything from functional beverages packed with vitamins to artisanal craft sodas and sophisticated, low-sugar iced teas that cater to a modern, health-conscious palate.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Cookies",
+        Image = "Uploads/cookies1.svg",
+        Description = "Indulge your sweet tooth with our delightful assortment of freshly baked cookies. Discover everything from classic chocolate chip to crispy, buttery creations, each one perfect for a comforting snack or as a companion to your afternoon tea or coffee.\n\nMore than just a treat, cookies are a universal symbol of comfort and celebration. They evoke feelings of home and are perfect for sharing, representing a simple, heartfelt gesture that brings joy to any occasion, from holiday gatherings to quiet afternoons.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Desert", // (Typo: Sebaiknya 'Dessert')
+        Image = "Uploads/desert.svg",
+        Description = "End your meal on a high note with our exquisite selection of desserts. From rich, decadent chocolate lava cakes to light and creamy panna cottas, our sweet treats are crafted to provide the perfect, indulgent conclusion to your dining experience.\n\nA great dessert is a multi-sensory experience, focusing on the interplay of texture, temperature, and presentation. It serves as the final flourish, providing a memorable and satisfying close that balances the entire meal and leaves a lasting impression.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Eastern",
+        Image = "Uploads/eastern.svg",
+        Description = "Savor the rich and aromatic flavors of the Middle East. This category features dishes defined by exotic spices, grilled meats, and savory dips, offering a truly appetizing experience that transports you to an Eastern bazaar.\n\nCentral to this cuisine is the concept of 'meze,' a vibrant collection of small dishes designed for sharing, which embodies hospitality and community. Expect signature spices like sumac, za'atar, and cumin, which provide an unforgettable depth of flavor.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Hot Drink",
+        Image = "Uploads/hot_drink.svg",
+        Description = "Warm your body and soothe your soul with our comforting collection of hot beverages. Whether you need a robust, premium-roast coffee to start your day or a calming herbal tea to unwind, we have the perfect hot drink for any mood.\n\nThese beverages are more than just a source of warmth; they are a global ritual. They foster social connections, fuel conversations, and provide a cherished moment for personal reflection and mindfulness in a busy world.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Junkfood",
+        Image = "Uploads/junkfood.svg",
+        Description = "Get your fix of quick, practical, and delicious comfort food. This selection is perfect for when you're on the go or craving a satisfying classic, featuring juicy burgers, crispy french fries, pizza, and other favorites.\n\nThe undeniable appeal often lies in achieving the 'bliss point'—a perfect, crave-worthy combination of salt, sugar, and fat. These foods are deeply tied to positive memories and convenience, offering a delicious and immediate sense of comfort.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    },
+    new Category {
+        Name = "Western",
+        Image = "Uploads/western.svg",
+        Description = "Experience the timeless culinary classics of the West. This category features everything from perfectly cooked, juicy steaks and al dente pastas smothered in rich sauces to fresh, crisp salads and hearty sandwiches.\n\nMany of these dishes are built upon the foundational 'mother sauces' of French cuisine, which provide a rich base for countless variations. The focus remains on high-quality proteins and precise techniques that have defined European and American dining for centuries.",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    }
+);
         await context.SaveChangesAsync();
       }
 
