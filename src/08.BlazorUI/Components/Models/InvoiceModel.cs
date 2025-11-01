@@ -59,7 +59,7 @@ namespace MyApp.BlazorUI.Models
     public string NoInvoice { get; set; } = "";
 
     [JsonPropertyName("date")]
-    public DateTime Date { get; set; }
+    public DateTimeOffset Date { get; set; }
 
     [JsonPropertyName("totalCourse")]
     public int TotalCourse { get; set; }

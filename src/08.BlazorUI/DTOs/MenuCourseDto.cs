@@ -16,7 +16,7 @@ public class CreateCourseDto
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public int CategoryId { get; set; }
-    public DateTime? ScheduleDate { get; set; }
+    public DateTimeOffset? ScheduleDate { get; set; }
     public int AvailableSlot { get; set; }
     public IFormFile? Image { get; set; }
 }

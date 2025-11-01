@@ -19,7 +19,7 @@
     </div>
 
     <MudTable Items="@Categories" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-        LoadingProgressColor="Color.Info" Class="category-table">
+        RowsPerPage="5" LoadingProgressColor="Color.Info" Class="category-table">
         <HeaderContent>
             <MudTh class="t">Name</MudTh>
             <MudTh class="t">Description</MudTh>
@@ -51,7 +51,7 @@
 
 
         <PagerContent>
-            <MudTablePager />
+            <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50, 100, int.MaxValue }" />
         </PagerContent>
     </MudTable>
 </MudPaper>
@@ -255,7 +255,7 @@
     }
 
     .mud-table-row {
-        background-color: #fafafa;
+        background-color: #ffffff;
         border-radius: 8px;
     }
 

@@ -18,7 +18,7 @@
 
   <div style="flex:1; overflow-y:auto;">
     <MudTable Items="@Users" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-      LoadingProgressColor="Color.Info" Class="mt-2" Elevation="0">
+      LoadingProgressColor="Color.Info" Class="mt-2" Elevation="0" RowsPerPage="5">
       <HeaderContent>
         <MudTh Class="t">Email</MudTh>
         <MudTh Class="t">Name</MudTh>
@@ -48,7 +48,7 @@
         </MudTd>
       </RowTemplate>
       <PagerContent>
-        <MudTablePager />
+        <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50, 100, int.MaxValue }" />
       </PagerContent>
     </MudTable>
   </div>

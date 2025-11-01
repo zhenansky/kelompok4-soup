@@ -14,7 +14,7 @@ namespace MyApp.BlazorUI.Components.Models
     public string Message { get; set; } = "";
 
     [JsonPropertyName("timestamp")]
-    public DateTime Timestamp { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
   }
 
   public class MyClassData
@@ -32,6 +32,6 @@ namespace MyApp.BlazorUI.Components.Models
     public string Category { get; set; } = string.Empty;
 
     [JsonPropertyName("schedule")]
-    public DateTime Schedule { get; set; }
+    public DateTimeOffset Schedule { get; set; }
   }
 }

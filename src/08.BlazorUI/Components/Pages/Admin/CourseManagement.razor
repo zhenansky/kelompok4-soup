@@ -21,7 +21,7 @@
 
     <div class="course-table">
         <MudTable Items="@Courses" FixedHeader="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading"
-            LoadingProgressColor="Color.Info" Elevation="0">
+            LoadingProgressColor="Color.Info" Elevation="0" RowsPerPage="5">
             <HeaderContent>
                 <MudTh class="t">Name</MudTh>
                 <MudTh class="t">Image</MudTh>
@@ -51,12 +51,15 @@
                     <MudButton Variant="Variant.Filled" Class="btn-edit"
                         OnClick="@(() => OpenDialogEditCourseAsync(context))">Edit</MudButton>
                     <MudButton Variant="Variant.Filled" Class="btn-delete"
-                        OnClick="@(() => OnDeleteCourseAsync(context.Id))">Delete</MudButton>
+                        OnClick="@(() => OnDeleteCourseAsync(context.Id, context.ScheduleAssignmentId, context.ScheduleId))">
+                        Delete
+                    </MudButton>
+
                 </MudTd>
             </RowTemplate>
 
             <PagerContent>
-                <MudTablePager />
+                <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50, 100, int.MaxValue }" />
             </PagerContent>
         </MudTable>
     </div>
@@ -169,20 +172,20 @@
         }
     }
 
-    private async Task OnDeleteCourseAsync(int id)
+    private async Task OnDeleteCourseAsync(int courseId, int? scheduleAssignmentId, int? scheduleId)
     {
         bool? confirmed = await DialogService.ShowMessageBox(
         "Konfirmasi Hapus",
-        "Apakah Anda yakin ingin menghapus course ini?",
+        "Apakah Anda yakin ingin menghapus course ini beserta jadwalnya?",
         yesText: "Ya, Hapus",
         cancelText: "Batal");
 
         if (confirmed == true)
         {
-            var success = await CourseService.DeleteCourseAsync(id);
+            var success = await CourseService.DeleteCourseWithScheduleAsync(courseId, scheduleAssignmentId, scheduleId);
             if (success)
             {
-                Snackbar.Add("🗑️ Course berhasil dihapus.", Severity.Success);
+                Snackbar.Add("🗑️ Course dan jadwal terkait berhasil dihapus.", Severity.Success);
                 await LoadCoursesAsync();
             }
             else
@@ -191,6 +194,7 @@
             }
         }
     }
+
 
 }
 
@@ -233,7 +237,7 @@
     }
 
     .mud-table-row {
-        background-color: #fafafa;
+        background-color: #ffffff;
         border-radius: 8px;
     }
 

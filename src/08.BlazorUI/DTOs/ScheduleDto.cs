@@ -4,6 +4,6 @@ namespace MyApp.BlazorUI.DTOs
     {
         public int Id { get; set; }
         public int AvailableSlot { get; set; }
-        public DateTime ScheduleDate { get; set; }
+        public DateTimeOffset ScheduleDate { get; set; }
     }
 }

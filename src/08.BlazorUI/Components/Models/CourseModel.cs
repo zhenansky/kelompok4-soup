@@ -10,7 +10,7 @@ namespace MyApp.BlazorUI.Components.Models
         public string? CategoryName { get; set; }
         public int CategoryId { get; set; }
 
-        public DateTime? ScheduleDate { get; set; }
+        public DateTimeOffset? ScheduleDate { get; set; }
 
         public string? Schedule { get; set; }
 
