@@ -12,13 +12,15 @@ namespace MyApp.BlazorUI.Services
   {
     private readonly ILocalStorageService _localStorage;
     private readonly IServiceProvider _services;
-    private readonly string _apiBaseUrl = "http://localhost:5099/";
-
-    public AuthTokenHandler(ILocalStorageService localStorage, IServiceProvider services)
+    IConfiguration _config;
+    public AuthTokenHandler(ILocalStorageService localStorage, IServiceProvider services, IConfiguration config)
     {
       _localStorage = localStorage;
       _services = services;
+      _config = config;
     }
+
+    private string _apiBaseUrl => _config["ApiBaseUrl"] ?? "http://localhost:5099";
 
     // 🔁 Refresh token saat 401
     public async Task<bool> RefreshTokenAsync()

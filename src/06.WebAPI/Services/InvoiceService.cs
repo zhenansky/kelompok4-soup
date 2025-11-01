@@ -171,10 +171,13 @@ namespace MyApp.WebAPI.Services
         }
         var invoiceNumber = $"SOU{nextNumber:D5}";
 
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var utcPlus7 = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+
         var invoice = new Invoice
         {
           NoInvoice = invoiceNumber,
-          Date = DateTime.UtcNow,
+          Date = utcPlus7,
           TotalCourse = totalCourse,
           TotalPrice = totalPrice,
           UserIdRef = currentUserId

@@ -25,7 +25,7 @@ builder.Services.AddMudServices();
 // ✅ HttpClient default (backup)
 builder.Services.AddScoped(sp => new HttpClient
 {
-  BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!)
+  BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/")
 });
 
 // Register local services
