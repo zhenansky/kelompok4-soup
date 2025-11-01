@@ -17,7 +17,7 @@ namespace MyApp.WebAPI.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -413,8 +413,8 @@ namespace MyApp.WebAPI.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("ScheduleDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("ScheduleDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");

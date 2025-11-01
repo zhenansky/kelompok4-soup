@@ -99,10 +99,13 @@ namespace MyApp.BlazorUI.Services
             if (dto.ScheduleDate.HasValue && dto.AvailableSlot > 0)
             {
                 // ✅ Gunakan form-data, bukan JSON
-                using var scheduleContent = new MultipartFormDataContent();
-                scheduleContent.Add(new StringContent(dto.ScheduleDate.Value.ToString("o")), "ScheduleDate");
+                var schedulePayload = new
+                {
+                    ScheduleDate = dto.ScheduleDate,
+                    MenuCourseId = courseId
+                };
 
-                var createScheduleResponse = await _httpClient.PostAsync($"{BaseUrl}/api/schedules", scheduleContent);
+                var createScheduleResponse = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/schedules", schedulePayload);
                 if (!createScheduleResponse.IsSuccessStatusCode)
                     return false;
 
@@ -160,10 +163,13 @@ namespace MyApp.BlazorUI.Services
                 if (scheduleId.HasValue && scheduleId.Value > 0)
                 {
                     // Update existing schedule
-                    using var scheduleContent = new MultipartFormDataContent();
-                    scheduleContent.Add(new StringContent(dto.ScheduleDate.Value.ToString("yyyy-MM-dd HH:mm:ss")), "ScheduleDate");
+                    var updatePayload = new
+                    {
+                        ScheduleDate = dto.ScheduleDate
+                    };
 
-                    var updateScheduleResponse = await _httpClient.PutAsync($"{BaseUrl}/api/schedules/{scheduleId.Value}", scheduleContent);
+
+                    var updateScheduleResponse = await _httpClient.PutAsJsonAsync($"{BaseUrl}/api/schedules/{scheduleId.Value}", updatePayload);
                     if (!updateScheduleResponse.IsSuccessStatusCode)
                         return false;
 
@@ -172,10 +178,14 @@ namespace MyApp.BlazorUI.Services
                 else
                 {
                     // Buat schedule baru
-                    using var scheduleContent = new MultipartFormDataContent();
-                    scheduleContent.Add(new StringContent(dto.ScheduleDate.Value.ToString("yyyy-MM-dd HH:mm:ss")), "ScheduleDate");
+                    var schedulePayload = new
+                    {
+                        ScheduleDate = dto.ScheduleDate,
+                    };
 
-                    var createScheduleResponse = await _httpClient.PostAsync($"{BaseUrl}/api/schedules", scheduleContent);
+
+
+                    var createScheduleResponse = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/schedules", schedulePayload);
                     if (!createScheduleResponse.IsSuccessStatusCode)
                         return false;
 
@@ -225,6 +235,23 @@ namespace MyApp.BlazorUI.Services
             var response = await _httpClient.DeleteAsync($"{BaseUrl}/api/menucourses/{id}");
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<bool> DeleteCourseWithScheduleAsync(int courseId, int? scheduleAssignmentId, int? scheduleId)
+        {
+            // 1️⃣ Delete Assignment jika ada
+            if (scheduleAssignmentId.HasValue)
+                await _httpClient.DeleteAsync($"{BaseUrl}/api/menucourses/schedules/{scheduleAssignmentId.Value}");
+
+            // 2️⃣ Delete Schedule jika ada
+            if (scheduleId.HasValue)
+                await _httpClient.DeleteAsync($"{BaseUrl}/api/schedules/{scheduleId.Value}");
+
+            // 3️⃣ Delete Course
+            var response = await _httpClient.DeleteAsync($"{BaseUrl}/api/menucourses/{courseId}");
+            return response.IsSuccessStatusCode;
+        }
+
+
 
         // 🟢 Tambahan: Update schedule saja (kalau butuh manual)
         public async Task<bool> UpdateScheduleAsync(int scheduleId, DateTime newDate)

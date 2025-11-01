@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MyApp.WebAPI.DTOs; 
+using MyApp.WebAPI.DTOs;
 using MyApp.WebAPI.Models;
 using MyApp.WebAPI.Services;
 
@@ -23,52 +23,62 @@ namespace MyApp.WebAPI.Controllers
             var schedules = await _scheduleService.GetAllAsync();
             return Ok(new ApiResponse<IEnumerable<ScheduleDto>>
             {
-                Success = true, Data = schedules, Message = "Berhasil mengambil semua data jadwal."
+                Success = true,
+                Data = schedules,
+                Message = "Berhasil mengambil semua data jadwal."
             });
         }
-        
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var schedule = await _scheduleService.GetAsync(id); 
+            var schedule = await _scheduleService.GetAsync(id);
             if (schedule == null)
             {
                 return NotFound(new ApiResponse<object>
                 {
-                    Success = false, Message = $"Jadwal dengan ID {id} tidak ditemukan."
+                    Success = false,
+                    Message = $"Jadwal dengan ID {id} tidak ditemukan."
                 });
             }
             return Ok(new ApiResponse<ScheduleDto>
             {
-                Success = true, Data = schedule, Message = "Berhasil mengambil data jadwal."
+                Success = true,
+                Data = schedule,
+                Message = "Berhasil mengambil data jadwal."
             });
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] CreateScheduleDto createDto)
+        public async Task<IActionResult> Create([FromBody] CreateScheduleDto createDto)
         {
             var newSchedule = await _scheduleService.CreateAsync(createDto);
             var response = new ApiResponse<ScheduleDto>
             {
-                Success = true, Data = newSchedule, Message = "Jadwal berhasil dibuat."
+                Success = true,
+                Data = newSchedule,
+                Message = "Jadwal berhasil dibuat."
             };
             return CreatedAtAction(nameof(GetById), new { id = newSchedule.Id }, response);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromForm] UpdateScheduleDto updateDto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateScheduleDto updateDto)
         {
-            var updatedSchedule = await _scheduleService.UpdateAsync(id, updateDto); 
+            var updatedSchedule = await _scheduleService.UpdateAsync(id, updateDto);
             if (updatedSchedule == null)
             {
                 return NotFound(new ApiResponse<object>
                 {
-                    Success = false, Message = $"Jadwal dengan ID {id} tidak ditemukan."
+                    Success = false,
+                    Message = $"Jadwal dengan ID {id} tidak ditemukan."
                 });
             }
             return Ok(new ApiResponse<ScheduleDto>
             {
-                Success = true, Data = updatedSchedule, Message = "Jadwal berhasil diperbarui."
+                Success = true,
+                Data = updatedSchedule,
+                Message = "Jadwal berhasil diperbarui."
             });
         }
 
@@ -80,7 +90,8 @@ namespace MyApp.WebAPI.Controllers
             {
                 return NotFound(new ApiResponse<object>
                 {
-                    Success = false, Message = $"Jadwal dengan ID {id} tidak ditemukan."
+                    Success = false,
+                    Message = $"Jadwal dengan ID {id} tidak ditemukan."
                 });
             }
             return NoContent();

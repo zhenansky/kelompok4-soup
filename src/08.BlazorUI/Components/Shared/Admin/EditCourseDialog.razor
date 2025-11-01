@@ -28,10 +28,10 @@
                 }
             </MudSelect>
 
-            <MudDatePicker Label="Tanggal Jadwal" Date="@_selectedDate" DateChanged="OnDateChanged" Required="true"
-                MinDate="@DateTime.Today" />
+            <MudDatePicker Date="_selectedDate" DateChanged="OnDateChanged" Required="true" MinDate="@DateTime.Today" />
 
-            <MudTimePicker Label="Waktu Jadwal" Value="@_selectedTime" ValueChanged="OnTimeChanged" AmPm="false"
+            <MudTimePicker Time="_selectedTime"
+                TimeChanged="EventCallback.Factory.Create<TimeSpan?>(this, OnTimeChanged)" AmPm="false"
                 MinuteInterval="5" />
 
             <MudNumericField T="int" Label="Slot Tersedia" @bind-Value="_editCourse.AvailableSlot" Min="1"
@@ -79,27 +79,41 @@
     private DateTime? _selectedDate;
     private TimeSpan _selectedTime;
 
+    private DateTime CreateLocalDateTime(DateTime date, TimeSpan time)
+    {
+        return DateTime.SpecifyKind(
+        new DateTime(date.Year, date.Month, date.Day, time.Hours, time.Minutes, 0),
+        DateTimeKind.Unspecified
+        );
+    }
+
     protected override void OnInitialized()
     {
-        if (CourseToEdit != null)
+        _editCourse = new CreateCourseDto
         {
-            _editCourse = new CreateCourseDto
-            {
-                Name = CourseToEdit.Name,
-                Description = CourseToEdit.Description,
-                Price = CourseToEdit.Price,
-                CategoryId = CourseToEdit.CategoryId,
-                AvailableSlot = CourseToEdit.AvailableSlot,
-                ScheduleDate = CourseToEdit.ScheduleDate ?? DateTime.Today.AddHours(9)
-            };
+            Name = CourseToEdit.Name,
+            Description = CourseToEdit.Description,
+            Price = CourseToEdit.Price,
+            CategoryId = CourseToEdit.CategoryId,
+            AvailableSlot = CourseToEdit.AvailableSlot,
+            ScheduleDate = CourseToEdit.ScheduleDate?.DateTime
+        };
 
-            // ✅ Pisahkan tanggal & jam dari ScheduleDate
-            var sched = _editCourse.ScheduleDate ?? DateTime.Today.AddHours(9);
-            _selectedDate = sched.Date;
-            _selectedTime = sched.TimeOfDay;
+        if (CourseToEdit.ScheduleDate != null)
+        {
+            var dt = CourseToEdit.ScheduleDate.Value.DateTime;
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
 
-            _imagePreview = CourseToEdit.ImageUrl;
+            _selectedDate = dt.Date;
+            _selectedTime = dt.TimeOfDay;
         }
+        else
+        {
+            _selectedDate = DateTime.Today;
+            _selectedTime = new TimeSpan(9, 0, 0);
+        }
+
+        _imagePreview = CourseToEdit.ImageUrl;
     }
 
     private void Cancel() => MudDialog.Cancel();
@@ -111,43 +125,18 @@
 
     private void OnDateChanged(DateTime? newDate)
     {
-        if (newDate.HasValue)
-        {
-            var current = _editCourse.ScheduleDate ?? DateTime.Now;
-            _selectedDate = newDate.Value;
-            _editCourse.ScheduleDate = new DateTime(
-            newDate.Value.Year,
-            newDate.Value.Month,
-            newDate.Value.Day,
-            current.Hour,
-            current.Minute,
-            0,
-            DateTimeKind.Local
-            );
-        }
+        _selectedDate = newDate;
     }
 
-    private void OnTimeChanged(TimeSpan newTime)
+    private void OnTimeChanged(TimeSpan? newTime)
     {
-        _selectedTime = newTime;
-
-        var current = _editCourse.ScheduleDate ?? DateTime.Now;
-        _editCourse.ScheduleDate = new DateTime(
-        current.Year,
-        current.Month,
-        current.Day,
-        newTime.Hours,
-        newTime.Minutes,
-        0,
-        DateTimeKind.Local
-        );
+        if (newTime.HasValue)
+            _selectedTime = newTime.Value;
     }
+
 
     private async Task SubmitAsync()
     {
-        if (_form is null)
-            return;
-
         await _form.Validate();
         if (!_isFormValid)
         {
@@ -155,36 +144,40 @@
             return;
         }
 
-        try
+        if (_selectedDate.HasValue)
         {
-            // Gabungkan tanggal dan jam sebelum kirim
-            if (_selectedDate.HasValue)
-            {
-                var combined = _selectedDate.Value.Date + _selectedTime;
-                _editCourse.ScheduleDate = DateTime.SpecifyKind(combined, DateTimeKind.Local);
-            }
-
-            var updated = await CourseService.UpdateCourseAsync(
-            CourseToEdit.Id,
-            _editCourse,
-            _selectedFile,
-            CourseToEdit.ScheduleId,
-            CourseToEdit.ScheduleAssignmentId
+            var combined = new DateTimeOffset(
+            _selectedDate.Value.Year,
+            _selectedDate.Value.Month,
+            _selectedDate.Value.Day,
+            _selectedTime.Hours,
+            _selectedTime.Minutes,
+            0,
+            TimeSpan.FromHours(7) // WIB (+07:00)
             );
 
-            if (updated)
-            {
-                Snackbar.Add("Perubahan berhasil disimpan.", Severity.Success);
-                MudDialog.Close(DialogResult.Ok(true));
-            }
-            else
-            {
-                Snackbar.Add("Gagal menyimpan perubahan course.", Severity.Error);
-            }
+            _editCourse.ScheduleDate = combined;
         }
-        catch (Exception ex)
+
+        Console.WriteLine($"DEBUG SEND: {_editCourse.ScheduleDate}");
+
+        var updated = await CourseService.UpdateCourseAsync(
+        CourseToEdit.Id,
+        _editCourse,
+        _selectedFile,
+        CourseToEdit.ScheduleId,
+        CourseToEdit.ScheduleAssignmentId
+        );
+
+        if (updated)
         {
-            Snackbar.Add($"Terjadi kesalahan: {ex.Message}", Severity.Error);
+            Snackbar.Add("Perubahan berhasil disimpan.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Gagal menyimpan perubahan course.", Severity.Error);
         }
     }
+
 }

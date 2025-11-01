@@ -51,7 +51,10 @@
                     <MudButton Variant="Variant.Filled" Class="btn-edit"
                         OnClick="@(() => OpenDialogEditCourseAsync(context))">Edit</MudButton>
                     <MudButton Variant="Variant.Filled" Class="btn-delete"
-                        OnClick="@(() => OnDeleteCourseAsync(context.Id))">Delete</MudButton>
+                        OnClick="@(() => OnDeleteCourseAsync(context.Id, context.ScheduleAssignmentId, context.ScheduleId))">
+                        Delete
+                    </MudButton>
+
                 </MudTd>
             </RowTemplate>
 
@@ -169,20 +172,20 @@
         }
     }
 
-    private async Task OnDeleteCourseAsync(int id)
+    private async Task OnDeleteCourseAsync(int courseId, int? scheduleAssignmentId, int? scheduleId)
     {
         bool? confirmed = await DialogService.ShowMessageBox(
         "Konfirmasi Hapus",
-        "Apakah Anda yakin ingin menghapus course ini?",
+        "Apakah Anda yakin ingin menghapus course ini beserta jadwalnya?",
         yesText: "Ya, Hapus",
         cancelText: "Batal");
 
         if (confirmed == true)
         {
-            var success = await CourseService.DeleteCourseAsync(id);
+            var success = await CourseService.DeleteCourseWithScheduleAsync(courseId, scheduleAssignmentId, scheduleId);
             if (success)
             {
-                Snackbar.Add("🗑️ Course berhasil dihapus.", Severity.Success);
+                Snackbar.Add("🗑️ Course dan jadwal terkait berhasil dihapus.", Severity.Success);
                 await LoadCoursesAsync();
             }
             else
@@ -191,6 +194,7 @@
             }
         }
     }
+
 
 }
 

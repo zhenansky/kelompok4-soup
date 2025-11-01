@@ -6,7 +6,7 @@ namespace MyApp.WebAPI.Models
   {
     [Key]
     public int ScheduleId { get; set; } // PK diseragamkan
-    public DateTime ScheduleDate { get; set; }
+    public DateTimeOffset ScheduleDate { get; set; }
 
     // Relation
     public ICollection<MenuCourseSchedule> MenuCourseSchedules { get; set; } = new List<MenuCourseSchedule>();

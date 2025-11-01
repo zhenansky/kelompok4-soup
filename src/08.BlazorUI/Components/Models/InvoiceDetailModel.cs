@@ -25,7 +25,7 @@ namespace MyApp.BlazorUI.Models
         public string NoInvoice { get; set; } = string.Empty;
 
         [JsonPropertyName("date")]
-        public DateTime Date { get; set; }
+        public DateTimeOffset Date { get; set; }
 
         [JsonPropertyName("totalPrice")]
         public decimal TotalPrice { get; set; }
