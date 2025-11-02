@@ -1,0 +1,55 @@
+@page "/profile"
+@using Microsoft.AspNetCore.Authorization
+@using MyApp.BlazorUI.DTOs
+@using MyApp.BlazorUI.Services
+@inject ProfileTokenService ProfileService
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+  <MudText Typo="Typo.h4" GutterBottom="true">Profil Saya</MudText>
+
+  @if (_isLoading)
+  {
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+  }
+  else if (_profile != null)
+  {
+    <MudCard>
+      <MudCardContent>
+        <MudTextField @bind-Value="_profile.Username" Label="Username" ReadOnly="true" Variant="Variant.Outlined" />
+        <MudTextField @bind-Value="_profile.Email" Label="Email" ReadOnly="true" Variant="Variant.Outlined"
+          Class="mt-3" />
+        <MudTextField @bind-Value="_profile.Role" Label="Role" ReadOnly="true" Variant="Variant.Outlined" Class="mt-3" />
+        <MudTextField @bind-Value="_profile.Status" Label="Status" ReadOnly="true" Variant="Variant.Outlined"
+          Class="mt-3" />
+      </MudCardContent>
+    </MudCard>
+  }
+  else
+  {
+    <MudText Color="Color.Error">Gagal memuat profil.</MudText>
+  }
+</MudContainer>
+
+@code {
+  private UserProfileDto? _profile;
+  private bool _isLoading = true;
+
+  protected override async Task OnInitializedAsync()
+  {
+    try
+    {
+      _profile = await ProfileService.GetProfileFromTokenAsync();
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Gagal memuat data: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      _isLoading = false;
+    }
+  }
+}

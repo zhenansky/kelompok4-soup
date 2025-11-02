@@ -50,35 +50,28 @@ else
           @("IDR " + course.Price.ToString("N0", idCulture))
         </MudText>
 
-        @* ========================================= *@
-        @* KODE YANG DISESUIKAN (MudSelect Jadwal) *@
-        @* ========================================= *@
         <MudSelect Style="max-width: 18.75rem;" Class="mt-6" T="int" @bind-Value="selectedScheduleId"
           Label="Select Schedule" Placeholder="Select Schedule" Variant="Variant.Outlined"
           Disabled="@(!AvailableSchedules.Any())">
-
-          @* Tambahkan opsi "Select Schedule" dengan Value="0" sebagai default/placeholder *@
           <MudSelectItem Value="0">Select Schedule</MudSelectItem>
 
           @if (AvailableSchedules.Any())
           {
             @foreach (var schedule in AvailableSchedules)
             {
-              // Tampilkan tanggal, gunakan Id sebagai nilai
               <MudSelectItem Value="@schedule.Id">@schedule.ScheduleDate.ToString("dddd, dd MMMM yyyy")
               </MudSelectItem>
             }
           }
           else
           {
-            // Opsi jika tidak ada jadwal tersedia
             <MudSelectItem Value="0" Disabled="true">Tidak ada jadwal tersedia</MudSelectItem>
           }
         </MudSelect>
 
         <MudItem class="d-flex flex-row gap-4 mt-4">
           <MudButton Class="rounded-lg button button-outline" Style="width: 14.5rem;" Variant="Variant.Outlined"
-            Disabled="@(selectedScheduleId == 0)" @onclick="AddToCart"> @* <-- @onclick di sini sekarang memanggil method void *@
+            Disabled="@(selectedScheduleId == 0)" @onclick="AddToCart">
             Add to Cart
           </MudButton>
 
@@ -119,16 +112,18 @@ else
       {
 
         <MudItem xs="12" sm="6" md="4" lg="4">
-          <MudCard Class="h-100" Elevation="0" @onclick="() => OnOtherMenuClick(item.Id)" Style="cursor:pointer;">
-            <MudCardMedia Image="@item.ImageUrl" Height="180" Class="object-cover" />
-
+          @* --- PERUBAHAN DI SINI --- *@
+          @* Markup kartu disamakan dengan Landingpage.razor *@
+          <MudCard Elevation="1" @onclick="() => OnOtherMenuClick(item.Id)" Class="card-hover my-card-style">
+            <MudCardMedia Image="@item.Image" Height="200" Alt="@item.Title" />
             <MudCardContent>
-              <MudText Typo="Typo.caption">@item.Category</MudText>
-              <MudText Typo="Typo.h6">@item.Name</MudText>
-
-              <MudText Class="mt-4" Style="color:#FABC1D;">@item.Price</MudText>
+              <MudText Typo="Typo.caption" Class="text-grey">@item.Category</MudText>
+              <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@item.Title</MudText>
+              <div class="my-10"></div>
+              <MudText Typo="Typo.body2" Color="Color.Warning" Class="font-weight-bold">@item.Price</MudText>
             </MudCardContent>
           </MudCard>
+          @* --- AKHIR PERUBAHAN --- *@
         </MudItem>
       }
     </MudGrid>
@@ -146,13 +141,12 @@ else
   private string courseImageUrl = string.Empty;
   private CultureInfo idCulture = new CultureInfo("id-ID");
   private string _apiBaseUrl = string.Empty;
-
-  // --- KODE YANG DISESUIKAN ---
   private List<MenuCourseScheduleDto> AvailableSchedules = new List<MenuCourseScheduleDto>();
-  private int selectedScheduleId = 0; // Tetap 0 sebagai default, yang akan menampilkan "Select Schedule"
-                                      // --- AKHIR PENYESUAIAN ---
+  private int selectedScheduleId = 0;
 
-  public record OtherMenu(int Id, string Category, string Name, string Price, string ImageUrl);
+  @* --- PERUBAHAN DI SINI --- *@
+  @* Definisi record disamakan dengan Landingpage.razor (Image, Title) *@
+  public record OtherMenu(int Id, string Image, string Category, string Title, string Price);
   private List<OtherMenu> OtherMenuItems = new List<OtherMenu>();
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -234,15 +228,17 @@ else
       var courseResponse = await Http.GetFromJsonAsync<ApiResponse<List<MenuCourseDto>>>("api/menucourses");
       if (courseResponse?.Success == true && courseResponse.Data != null)
       {
+        @* --- PERUBAHAN DI SINI --- *@
+        @* Logika .Select() disesuaikan dengan record OtherMenu baru *@
         OtherMenuItems = courseResponse.Data
         .Where(dto => dto.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase) && dto.Id != currentMenuId)
         .Take(6)
         .Select(dto => new OtherMenu(
         dto.Id,
-        dto.CategoryName,
-        dto.Name,
-        "IDR " + dto.Price.ToString("N0", idCulture),
-        string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}"
+        string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}", // Image
+        dto.CategoryName, // Category
+        dto.Name, // Title
+        "IDR " + dto.Price.ToString("N0", idCulture) // Price
         ))
         .ToList();
       }
@@ -258,35 +254,20 @@ else
     NavManager.NavigateTo($"/menu/detail/{menuId}", forceLoad: true);
   }
 
-  // =============================================
-  // == FUNGSI BARU UNTUK E-COMMERCE (DIPERBAIKI) ==
-  // =============================================
-
-  /**
-  * @brief Method void ini khusus untuk event @onclick tombol "Add to Cart".
-*/
   private void AddToCart()
   {
-    // Panggil method logika internal dan abaikan hasilnya
     AddToCartInternal();
   }
 
-  /**
-  * @brief Method ini berisi logika inti dan mengembalikan status sukses/gagal.
-  * @return true jika berhasil ditambahkan, false jika gagal.
-*/
   private bool AddToCartInternal()
   {
     if (course == null) return false;
-
-    // 1. Validasi apakah jadwal sudah dipilih
     if (selectedScheduleId == 0)
     {
       Snackbar.Add("Please select a schedule first.", Severity.Warning);
       return false;
     }
 
-    // 2. Dapatkan detail jadwal yang dipilih
     var selectedSchedule = AvailableSchedules.FirstOrDefault(s => s.Id == selectedScheduleId);
     if (selectedSchedule == null)
     {
@@ -294,7 +275,6 @@ else
       return false;
     }
 
-    // 3. Buat objek CartItem (pastikan DTO/model ini ada di proyek Anda)
     var newItem = new CartItem
     {
       MSId = selectedSchedule.Id,
@@ -305,10 +285,9 @@ else
       Price = course.Price,
       ImageUrl = courseImageUrl,
       Schedule = selectedSchedule.ScheduleDate,
-      Selected = true // Langsung tandai sebagai terpilih di keranjang
+      Selected = true
     };
 
-    // 4. Panggil CartService untuk menambahkan item
     try
     {
       CartService.AddItem(newItem);
@@ -419,6 +398,31 @@ else
     finally
     {
       isProcessingPayment = false;
+      StateHasChanged();
     }
   }
 }
+
+@* --- PERUBAHAN DI SINI --- *@
+@* Menambahkan style CSS yang diperlukan untuk card *@
+<style>
+  .card-hover {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  }
+
+  .text-grey {
+    color: grey;
+  }
+
+  .my-card-style {
+    width: 100%;
+    margin: auto;
+    height: 100%;
+  }
+</style>

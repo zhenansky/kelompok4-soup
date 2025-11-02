@@ -8,35 +8,11 @@
 @inject ILocalStorageService LocalStorage
 @inject IAuthService AuthService
 
-<style>
-  .custom-header {
-    background-color: #5B4947;
-  }
-
-  /* Row ganjil putih, genap abu-abu */
-  .odd-row {
-    background-color: #ffffff;
-  }
-
-  .even-row {
-    background-color: #f5f5f5;
-  }
-
-  /* Align cell */
-  .center-cell {
-    text-align: center;
-  }
-
-  .left-cell {
-    text-align: left;
-  }
-</style>
-
-<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="page-container">
   <MudItem Class="px-12 mt-10">
-    <MudBreadcrumbs Items="_items" Separator=">">
-    </MudBreadcrumbs>
+    <MudBreadcrumbs Items="_items" Separator=">" />
   </MudItem>
+
   @if (_loading)
   {
     <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
@@ -46,7 +22,7 @@
   }
   else
   {
-    <MudItem class="px-14 my-10 d-flex flex-column">
+    <MudItem class="px-14 my-10 d-flex flex-column content-area">
       <MudText Typo="Typo.h6" Style="font-weight: 600;">Detail Invoice</MudText>
 
       <MudGrid Class="mt-4">
@@ -72,35 +48,37 @@
           </MudText>
         </MudItem>
       </MudGrid>
-    </MudItem>
 
-    <MudTable T="InvoiceCourseData" Items="@Details" Hover="true" Bordered="false" Striped="true"
-      RowClassFunc="RowClassFunc" Class="mx-14 mt-4">
-      <HeaderContent>
-        <MudTh Class="custom-header left-cell" style="color:white; width:5%">No.</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white; width:45%">Course Name</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white; width:15%">Type</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white; width:20%">Schedule</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white; width:15%">Price</MudTh>
-      </HeaderContent>
-      <RowTemplate>
-        <MudTd Class="left-cell" DataLabel="No.">@(Details.IndexOf(context) + 1)</MudTd>
-        <MudTd Class="center-cell" DataLabel="Course Name">@context.Name</MudTd>
-        <MudTd Class="center-cell" DataLabel="Type">@context.Category</MudTd>
-        <MudTd Class="center-cell" DataLabel="Schedule">@context.ScheduleDate.ToString("dddd, dd MMMM yyyy", new
-                  System.Globalization.CultureInfo("en-EN"))</MudTd>
-      <MudTd Class="center-cell" DataLabel="Price">IDR @context.Price.ToString("N0")</MudTd>
-    </RowTemplate>
-  </MudTable>
+      <MudTable T="InvoiceCourseData" Items="@Details" Hover="true" Striped="true" Class="mx-0 mt-6">
+        <HeaderContent>
+          <MudTh Class="custom-header left-cell" style="color:white; width:5%">No.</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white; width:45%">Course Name</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white; width:15%">Type</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white; width:20%">Schedule</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white; width:15%">Price</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+          <MudTd Class="left-cell" DataLabel="No.">@(Details.IndexOf(context) + 1)</MudTd>
+          <MudTd Class="center-cell" DataLabel="Course Name">@context.Name</MudTd>
+          <MudTd Class="center-cell" DataLabel="Type">@context.Category</MudTd>
+          <MudTd Class="center-cell" DataLabel="Schedule">@context.ScheduleDate.ToString("dddd, dd MMMM yyyy", new
+                      System.Globalization.CultureInfo("en-EN"))</MudTd>
+        <MudTd Class="center-cell" DataLabel="Price">IDR @context.Price.ToString("N0")</MudTd>
+      </RowTemplate>
+      <NoRecordsContent>
+        <MudText Class="m-3">No course data found.</MudText>
+      </NoRecordsContent>
+    </MudTable>
+  </MudItem>
     }
 </MudContainer>
 
 @code {
   [Parameter]
   public int id { get; set; }
+
   private bool _loading;
   private bool _loaded;
-  private int totalInvoices;
   private InvoiceDetailData InvoiceDetail = new();
   private List<InvoiceCourseData> Details = new();
 
@@ -124,7 +102,6 @@
         Navigation.NavigateTo("/", forceLoad: true);
       }
 
-      // 2️⃣ Coba baca token dari LocalStorage
       string? token = null;
       try
       {
@@ -135,20 +112,10 @@
         Console.WriteLine("⚠️ LocalStorage belum siap atau tidak tersedia: " + ex.Message);
       }
 
-      // 3️⃣ Kalau token ada, ambil data invoice
       if (!string.IsNullOrWhiteSpace(token))
       {
-        Console.WriteLine("🔑 Token ditemukan, ambil data invoice...");
-
         InvoiceDetail = await InvoiceService.GetInvoiceDetailAsync(id, token);
-        if (InvoiceDetail != null)
-        {
-          Details = InvoiceDetail.ListCourse;
-        }
-        else
-        {
-          Details.Clear();
-        }
+        Details = InvoiceDetail?.ListCourse ?? new List<InvoiceCourseData>();
       }
       else
       {
@@ -156,7 +123,7 @@
       }
 
       _loaded = true;
-      StateHasChanged(); // ⬅️ Pastikan UI refresh setelah data terload
+      StateHasChanged();
     }
     catch (Exception ex)
     {
@@ -169,7 +136,6 @@
     }
   }
 
-
   private List<BreadcrumbItem> _items = new()
 {
 new("Home", href: "/"),
@@ -177,9 +143,49 @@ new("Invoice", href: "/invoice"),
 new("Detail Invoice", href: null, disabled: true)
 };
 
-
   private string RowClassFunc(InvoiceCourseData detail, int rowNumber)
   {
     return (rowNumber % 2 == 1) ? "even-row" : "odd-row";
   }
 }
+
+<style>
+  .page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  .content-area {
+    flex: 1;
+  }
+
+  .footer {
+    margin-top: auto;
+    padding: 16px;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-top: 1px solid #ddd;
+  }
+
+  .custom-header {
+    background-color: #5B4947;
+  }
+
+  .odd-row {
+    background-color: #ffffff;
+  }
+
+  .even-row {
+    background-color: #f5f5f5;
+  }
+
+  .center-cell {
+    text-align: center;
+  }
+
+  .left-cell {
+    text-align: left;
+  }
+</style>

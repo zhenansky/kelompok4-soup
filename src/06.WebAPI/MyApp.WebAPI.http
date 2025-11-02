@@ -1,3 +1,5 @@
+@MyApp.WebAPI_HostAddress = http://api.frontend.com:5000
+###
 @MyApp.WebAPI_HostAddress = http://localhost:5099
 
 GET {{MyApp.WebAPI_HostAddress}}/weatherforecast/

@@ -201,5 +201,18 @@ namespace MyApp.WebAPI.Controllers
         Message = result.Message
       });
     }
-  }
+    [Authorize]
+    [HttpGet("profile")]
+        public IActionResult GetProfile()
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var username = User.Identity?.Name;
+
+            return Ok(new
+            {
+                Email = email,
+                Username = username
+            });
+        }
+    }
 }

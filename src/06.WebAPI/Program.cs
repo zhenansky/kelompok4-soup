@@ -114,13 +114,18 @@ builder.Services.AddApplicationServices();
 // Mendefinisikan kebijakan CORS "AllowAll"
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: "AllowAll",
-                      policy =>
-                      {
-                          policy.WithOrigins("http://localhost:5124") 
-                                .AllowAnyHeader()
-                                .AllowAnyMethod();
-                      });
+  options.AddPolicy("AllowFrontend", policy =>
+  {
+    policy.WithOrigins(
+              "http://frontend.com",
+              "http://admin.frontend.com",
+              "http://localhost:3000",
+              "http://localhost:7000",
+              "http://localhost:5124")
+          .AllowAnyMethod()
+          .AllowAnyHeader()
+          .AllowCredentials();
+  });
 });
 
 // ===============================================

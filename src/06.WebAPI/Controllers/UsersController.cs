@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using MyApp.WebAPI.DTO.Users;
 using MyApp.WebAPI.Services.Interfaces;
 
@@ -34,5 +36,17 @@ namespace MyApp.WebAPI.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
             => Ok(await _userService.DeleteUserAsync(id));
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { success = false, message = "Token tidak valid" });
+
+            var result = await _userService.GetUserByIdAsync(int.Parse(userId));
+            return Ok(result);
+        }
     }
 }

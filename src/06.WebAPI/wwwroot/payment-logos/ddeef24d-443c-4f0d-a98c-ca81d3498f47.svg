@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 109.22 109.22"
+   version="1.1"
+   sodipodi:docname="Logo_dana_blue.svg"
+   width="109.22"
+   height="109.22"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.6413613"
+     inkscape:cx="59.357586"
+     inkscape:cy="52.247603"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs1">
+    <style
+       id="style1">.cls-1,.cls-2{fill:#008ceb;}.cls-1{fill-rule:evenodd;}.cls-3{fill:#fefefe;}</style>
+  </defs>
+  <title
+     id="title1">Logo_dana_blue</title>
+  <circle
+     class="cls-2"
+     cx="54.610001"
+     cy="54.610001"
+     r="54.610001"
+     id="circle4"
+     style="fill:#008ceb" />
+  <path
+     class="cls-3"
+     d="m 86.430002,54.839999 v 15.37 c 0,1 -0.43,1.21 -1.27,0.72 a 28.08,28.08 0 0 0 -3.5,-1.78 23.73,23.73 0 0 0 -11.49,-1.53 55.06,55.06 0 0 0 -12.44,3.12 c -4,1.35 -7.92,2.81 -12,3.94 a 33.41,33.41 0 0 1 -10.42,1.37 22.12,22.12 0 0 1 -11,-3.43 2.71,2.71 0 0 1 -1.31,-2.42 q 0,-15.1 0,-30.2 c 0,-0.49 0,-1.07 0.44,-1.32 0.44,-0.25 0.89,0.16 1.27,0.41 a 21,21 0 0 0 12.15,3.6 32.4,32.4 0 0 0 9.08,-1.69 c 4.16,-1.29 8.18,-3 12.27,-4.45 a 74.14,74.14 0 0 1 9.77,-3 21.21,21.21 0 0 1 16.73,3.09 3.67,3.67 0 0 1 1.75,3.27 c 0,5 0,10 0,15 z"
+     id="path5"
+     style="fill:#fefefe" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Logo_dana_blue</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

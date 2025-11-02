@@ -14,6 +14,27 @@
 
 
 <style>
+  /* Pastikan wrapper tinggi layar penuh */
+  .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Area utama isi ruang tengah */
+  .main-content {
+    flex: 1;
+  }
+
+  /* Footer menempel di bawah */
+  .footer {
+    margin-top: auto;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    text-align: center;
+    border-top: 1px solid #e0e0e0;
+  }
+
   .custom-header {
     background-color: #5B4947;
   }
@@ -47,51 +68,56 @@
   }
 </style>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="page-wrapper">
+
   <MudItem Class="px-12 mt-10">
     <MudBreadcrumbs Items="_items" Separator=">"></MudBreadcrumbs>
   </MudItem>
+
   @if (_loading)
   {
-    <div class="d-flex align-items-center justify-content-center" style="height: 100%;">
+    <div class="d-flex align-items-center justify-content-center main-content">
       <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
       <MudText Typo="Typo.h6" Class="ml-3">Loading...</MudText>
     </div>
   }
   else
   {
-    <MudItem class="px-14 my-10">
+    <MudItem class="px-14 my-10 main-content">
       <MudText Typo="Typo.h6" Style="color:#4F4F4F; font-weight:600">Menu Invoice</MudText>
+
+      <MudTable Class="mx-14 mt-4" T="InvoiceItem" Items="@invoices" Hover="true" Breakpoint="Breakpoint.Sm"
+        RowClassFunc="@RowClassFunc">
+        <HeaderContent>
+          <MudTh Class="custom-header left-cell" style="color:white">No.</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white">No. Invoice</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white">Date</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white">Total Course</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white">Total Price</MudTh>
+          <MudTh Class="custom-header center-cell" style="color:white">Action</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+          <MudTd Class="left-cell" DataLabel="No.">@(invoices.IndexOf(context) + 1)</MudTd>
+          <MudTd Class="center-cell" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
+          <MudTd Class="center-cell" DataLabel="Date">
+            @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
+          </MudTd>
+          <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
+          <MudTd Class="center-cell" DataLabel="Total Price">IDR @context.TotalPrice.ToString("N0")</MudTd>
+          <MudTd Class="center-cell">
+            <MudButton Class="rounded-lg details-btn" Variant="Variant.Filled" Size="Size.Small" DropShadow="false"
+              OnClick="@(() => ShowDetails(context))">
+              Details
+            </MudButton>
+          </MudTd>
+        </RowTemplate>
+
+        <NoRecordsContent>
+          <MudText Class="m-3">No invoice found.</MudText>
+        </NoRecordsContent>
+      </MudTable>
     </MudItem>
-    <MudTable Class="mx-14" T="InvoiceItem" Items="@invoices" Hover="true" Breakpoint="Breakpoint.Sm"
-      RowClassFunc="@RowClassFunc">
-      <HeaderContent>
-        <MudTh Class="custom-header left-cell" style="color:white">No.</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white">No. Invoice</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white">Date</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white">Total Course</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white">Total Price</MudTh>
-        <MudTh Class="custom-header center-cell" style="color:white">Action</MudTh>
-      </HeaderContent>
-      <RowTemplate>
-        <MudTd Class="left-cell" DataLabel="No.">@(invoices.IndexOf(context) + 1)</MudTd>
-        <MudTd Class="center-cell" DataLabel="No. Invoice">@context.NoInvoice</MudTd>
-        <MudTd Class="center-cell" DataLabel="Date">
-          @context.Date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
-        </MudTd>
-        <MudTd Class="center-cell" DataLabel="Total Course">@context.TotalCourse</MudTd>
-        <MudTd Class="center-cell" DataLabel="Total Price">IDR @context.TotalPrice.ToString("N0")</MudTd>
-        <MudTd Class="center-cell">
-          <MudButton Class="rounded-lg details-btn" Variant="Variant.Filled" Size="Size.Small" DropShadow="false"
-            OnClick="@(() => ShowDetails(context))">
-            Details
-          </MudButton>
-        </MudTd>
-      </RowTemplate>
-      <NoRecordsContent>
-        <MudText Class="m-3">No invoice found.</MudText>
-      </NoRecordsContent>
-    </MudTable>
   }
 </MudContainer>
 

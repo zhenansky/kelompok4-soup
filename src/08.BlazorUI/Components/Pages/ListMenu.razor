@@ -9,19 +9,21 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-0">
 
-    <MudItem Style="width:100%;" Class="mb-6" Elevation="0">
-        <MudImage Src="/images/hero.svg" Alt="@($"{CategoryName} Food")" Class="object-contain"
-            Style="height:auto; width:100%" />
-    </MudItem>
+    <section class="hero-wrapper">
+        <div class="hero-image-container">
+            <img src="@categoryImageUrl" alt="@($"{CategoryName} Food")" class="hero-image" />
+        </div>
 
-    <MudPaper Elevation="1" Class="pa-4 pa-md-10 mb-8">
-        <MudText Typo="Typo.h5" Class="fw-bold">@CategoryName</MudText>
-        <MudText Typo="Typo.body1" Class="mt-2 text-secondary">
-            @categoryDescription
-        </MudText>
-    </MudPaper>
+        <MudPaper Elevation="1" Class="pa-4 pa-md-10 mb-8">
+            <MudText Typo="Typo.h5" Class="fw-bold">@CategoryName</MudText>
+            <MudText Typo="Typo.body1" Class="mt-8 text-secondary">
+                @categoryDescription
+            </MudText>
+        </MudPaper>
+    </section>
 
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="px-3 my-20 pb-10">
+
         <MudText Typo="Typo.h5" Align="Align.Center" Class="fw-semibold mt-6 mb-6" Style="color:#5B4947;">
             Another menu in this class
         </MudText>
@@ -40,17 +42,19 @@
         }
         else
         {
+
             <MudGrid Class="my-20" Gutter="3">
                 @foreach (var item in FilteredMenuItems)
                 {
                     <MudItem xs="12" sm="6" md="4" lg="4">
-                        @* 1. TAMBAHKAN OnClick DI SINI *@
-                        <MudCard Class="h-100" Elevation="0" @onclick="() => OnMenuClick(item)" Style="cursor:pointer;">
-                            <MudCardMedia Image="@item.ImageUrl" Height="180" Class="object-cover" />
+                        @* PERUBAHAN: Markup kartu disamakan dengan Landingpage.razor *@
+                        <MudCard Elevation="1" @onclick="() => OnMenuClick(item)" Class="card-hover my-card-style">
+                            <MudCardMedia Image="@item.Image" Height="200" Alt="@item.Title" />
                             <MudCardContent>
-                                <MudText Typo="Typo.caption">@item.Category</MudText>
-                                <MudText Typo="Typo.h6">@item.Name</MudText>
-                                <MudText Class="mt-4" Style="color:#FABC1D;">@item.Price</MudText>
+                                <MudText Typo="Typo.caption" Class="text-grey">@item.Category</MudText>
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@item.Title</MudText>
+                                <div class="my-10"></div>
+                                <MudText Typo="Typo.body2" Color="Color.Warning" Class="font-weight-bold">@item.Price</MudText>
                             </MudCardContent>
                         </MudCard>
                     </MudItem>
@@ -63,16 +67,16 @@
 @code {
     [Parameter]
     public string CategoryName { get; set; }
+    private string? categoryImageUrl = "/images/hero.svg";
 
-    @* 2. UBAH RECORD INI UNTUK MENYIMPAN ID *@
-    public record Menu(int Id, string Category, string Name, string Price, string ImageUrl);
+    @* PERUBAHAN: Definisi record disamakan dengan Landingpage.razor (Image, Title) *@
+    public record Menu(int Id, string Image, string Category, string Title, string Price);
     public List<Menu> FilteredMenuItems = new List<Menu>();
     private bool isLoading = true;
     private CultureInfo idCulture = new CultureInfo("id-ID");
     private string _apiBaseUrl = string.Empty;
     private string? categoryDescription = "Memuat deskripsi...";
 
-    @* 3. TAMBAHKAN METODE NAVIGASI INI *@
     private void OnMenuClick(Menu item)
     {
         NavManager.NavigateTo($"/menu/detail/{item.Id}");
@@ -97,32 +101,39 @@
             var courseResponse = await Http.GetFromJsonAsync<ApiResponse<List<MenuCourseDto>>>("api/menucourses");
             if (courseResponse?.Success == true && courseResponse.Data != null)
             {
-                @* 4. UBAH LOGIKA .Select() INI *@
+                @* PERUBAHAN: Logika .Select() disesuaikan dengan record Menu baru *@
                 FilteredMenuItems = courseResponse.Data
                 .Where(dto => dto.CategoryName.Equals(CategoryName, StringComparison.OrdinalIgnoreCase))
                 .Select(dto => new Menu(
-                dto.Id, // <-- Tambahkan dto.Id
-                dto.CategoryName,
-                dto.Name,
-                "IDR " + dto.Price.ToString("N0", idCulture),
-                string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}"
+                dto.Id,
+                string.IsNullOrEmpty(dto.Image) ? "" : $"{_apiBaseUrl}/{dto.Image.TrimStart('/')}", // Image
+                dto.CategoryName, // Category
+                dto.Name, // Title
+                "IDR " + dto.Price.ToString("N0", idCulture) // Price
                 ))
                 .ToList();
             }
 
-            // === FETCH 2: Get Category Description ===
             var categoryResponse = await Http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>("api/categories");
             if (categoryResponse?.Success == true && categoryResponse.Data != null)
             {
                 var matchingCategory = categoryResponse.Data
                 .FirstOrDefault(cat => cat.Name.Equals(CategoryName, StringComparison.OrdinalIgnoreCase));
+
                 if (matchingCategory != null)
                 {
                     categoryDescription = matchingCategory.Description;
+
+                    // Ambil image dari API Category
+                    if (!string.IsNullOrEmpty(matchingCategory.Image))
+                        categoryImageUrl = $"{_apiBaseUrl}/{matchingCategory.Image.TrimStart('/')}";
+                    else
+                        categoryImageUrl = "/images/hero.svg"; // fallback image
                 }
                 else
                 {
                     categoryDescription = $"Deskripsi untuk {CategoryName} tidak ditemukan.";
+                    categoryImageUrl = "/images/hero.svg";
                 }
             }
         }
@@ -137,3 +148,74 @@
         }
     }
 }
+
+<style>
+    .card-hover {
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .text-grey {
+        color: grey;
+    }
+
+    /* PERUBAHAN: Menambahkan style .my-card-style dari Landingpage.razor */
+    .my-card-style {
+        width: 100%;
+        margin: auto;
+        height: 100%;
+    }
+
+    .hero-wrapper {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        margin-bottom: 60px;
+    }
+
+    .hero-image-container {
+        width: 100%;
+        height: 420px;
+        overflow: hidden;
+    }
+
+    .hero-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 3s ease;
+    }
+
+    .hero-image:hover {
+        transform: scale(1.05);
+    }
+
+    .hero-content {
+        background: #fff;
+        text-align: center;
+        padding: 2.5rem 2rem;
+        max-width: 900px;
+        margin: -80px auto 0 auto;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2b2b2b;
+        margin-bottom: 12px;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.6;
+    }
+</style>
