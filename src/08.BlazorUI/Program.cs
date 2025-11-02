@@ -14,9 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 // ==============================================
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+  options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+  options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+  options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 // ==============================================
@@ -32,7 +32,7 @@ builder.Services.AddMudServices();
 // ==============================================
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!)
+  BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/")
 });
 
 // ==============================================
@@ -59,14 +59,14 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthentication("Identity.Application")
     .AddCookie("Identity.Application", options =>
     {
-        options.LoginPath = "/login";
-        options.LogoutPath = "/logout";
-        options.AccessDeniedPath = "/access-denied";
+      options.LoginPath = "/login";
+      options.LogoutPath = "/logout";
+      options.AccessDeniedPath = "/access-denied";
     });
 
 builder.Services.AddAuthorizationCore(options =>
 {
-    options.FallbackPolicy = null; // Tidak wajib login di semua halaman
+  options.FallbackPolicy = null; // Tidak wajib login di semua halaman
 });
 
 builder.Services.AddCascadingAuthenticationState();
@@ -81,32 +81,32 @@ builder.Services.AddTransient<AuthTokenHandler>();
 // ==============================================
 builder.Services.AddHttpClient<UserService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
 });
 
 builder.Services.AddHttpClient<PaymentService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
 });
 
 builder.Services.AddHttpClient<IAuthClient, AuthClient>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<InvoiceService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<DashboardService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<MyClassServices>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
+  client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5099/");
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 // ==============================================
@@ -123,8 +123,8 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+  app.UseExceptionHandler("/Error", createScopeForErrors: true);
+  app.UseHsts();
 }
 
 app.UseHttpsRedirection();
