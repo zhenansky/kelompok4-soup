@@ -17,12 +17,30 @@
           <MudText>No. Invoice:</MudText>
           <MudText>Date:</MudText>
         </MudItem>
+
         <MudItem>
           <MudText>@(InvoiceDetail?.NoInvoice ?? "-")</MudText>
           <MudText>
-            @(InvoiceDetail?.Date != DateTime.MinValue
-                        ? InvoiceDetail?.Date.ToString("dddd, dd MMMM yyyy")
-                        : "-")
+            @{
+              string formattedDate = "-";
+              if (InvoiceDetail != null)
+              {
+                try
+                {
+                  if (InvoiceDetail.Date.Year >= 1 && InvoiceDetail.Date.Year <= 9999)
+                  {
+                    formattedDate = InvoiceDetail.Date
+                    .ToLocalTime()
+                    .ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"));
+                  }
+                }
+                catch
+                {
+                  formattedDate = "-";
+                }
+              }
+            }
+            @formattedDate
           </MudText>
         </MudItem>
       </MudItem>
@@ -41,7 +59,7 @@
         <MudTh>Course Name</MudTh>
         <MudTh>Type</MudTh>
         <MudTh>Schedule</MudTh>
-        <MudTh>Price</MudTh>
+        <MudTh align="right">Price</MudTh>
       </HeaderContent>
 
       <RowTemplate>
@@ -49,9 +67,18 @@
         <MudTd>@context.CourseName</MudTd>
         <MudTd>@context.Type</MudTd>
         <MudTd>
-          @context.Schedule.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+          @{
+            string scheduleDate = "-";
+            if (context.Schedule.HasValue && context.Schedule.Value.Year >= 1 && context.Schedule.Value.Year <= 9999)
+            {
+              scheduleDate = context.Schedule.Value
+              .ToLocalTime()
+              .ToString("dd MMM yyyy", new System.Globalization.CultureInfo("id-ID"));
+            }
+            @scheduleDate
+          }
         </MudTd>
-        <MudTd>
+        <MudTd align="right">
           @("IDR " + context.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID")))
         </MudTd>
       </RowTemplate>
@@ -113,20 +140,20 @@
         return;
       }
 
-      // 🔹 Setelah data diterima, buat daftar item
-      InvoiceItems = InvoiceDetail.ListCourse?.Select((c, i) => new CourseItem
+      // ✅ Mapping dengan aman terhadap DateTime.MinValue
+      InvoiceItems = InvoiceDetail.ListCourse?
+      .Select((c, i) => new CourseItem
       {
         No = i + 1,
         CourseName = c.Name,
         Type = c.Category,
-        Schedule = c.ScheduleDate,
+        Schedule = (c.ScheduleDate.Year >= 1 && c.ScheduleDate.Year <= 9999)
+      ? (DateTimeOffset?)c.ScheduleDate
+      : null,
         Price = c.Price
       }).ToList() ?? new List<CourseItem>();
 
       Console.WriteLine($"✅ Invoice loaded: {InvoiceDetail.NoInvoice}, items: {InvoiceItems.Count}");
-
-      // ✅ Tambahkan ini supaya TitleContent ikut di-render ulang
-      StateHasChanged();
     }
     catch (Exception ex)
     {
@@ -136,7 +163,7 @@
     finally
     {
       _loading = false;
-      StateHasChanged(); // tetap biar loading spinner hilang
+      StateHasChanged();
     }
   }
 
@@ -147,7 +174,7 @@
     public int No { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public DateTimeOffset Schedule { get; set; }
+    public DateTimeOffset? Schedule { get; set; }
     public decimal Price { get; set; }
   }
 }
