@@ -1,13 +1,13 @@
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["src/08.BlazorUI/MyApp.BlazorUI.csproj", "src/08.BlazorUI/"]
-RUN dotnet restore "src/08.BlazorUI/MyApp.BlazorUI.csproj"
+COPY ["MyApp.BlazorUI.csproj", "./"]
+RUN dotnet restore "MyApp.BlazorUI.csproj"
 COPY . .
-WORKDIR "/src/src/08.BlazorUI"
+WORKDIR "/src"
 RUN dotnet build "MyApp.BlazorUI.csproj" -c Release -o /app/build
 
 FROM build AS publish
