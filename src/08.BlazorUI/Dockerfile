@@ -18,7 +18,7 @@ COPY . .
 RUN dotnet build "MyApp.BlazorUI.csproj" -c Release -o /app/build
 
 # Publish hasil build
-RUN dotnet publish "MyApp.BlazorUI.csproj" -c Release -o /app/publish
+RUN dotnet publish "MyApp.BlazorUI.csproj" -c Release -o /app/publish /p:UseAppHost=false\\
 
 # Final image
 FROM base AS final

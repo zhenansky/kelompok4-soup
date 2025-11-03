@@ -8,7 +8,6 @@
 @inject NavigationManager NavManager
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-0">
-
     <section class="hero-wrapper">
         <div class="hero-image-container">
             <img src="@categoryImageUrl" alt="@($"{CategoryName} Food")" class="hero-image" />
@@ -41,34 +40,27 @@
         }
         else
         {
-            <div style="height: 600px; overflow-y: auto;">
-                <MudVirtualize Items="MenuRows" ItemSize="300">
-                    <ItemTemplate>
-                        <MudGrid Spacing="4">
-                            @foreach (var item in context)
-                            {
-                                <MudItem xs="12" sm="6" md="4" lg="4">
-                                    <MudCard Elevation="1" @onclick="() => OnMenuClick(item)" Class="card-hover my-card-style">
-                                        <MudCardMedia Image="@item.Image" Height="300" Alt="@item.Title"
-                                            Style="object-fit: cover; object-position: center;" />
-                                        <MudCardContent>
-                                            <MudText Typo="Typo.caption" Class="text-grey">@item.Category</MudText>
-                                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@item.Title</MudText>
-                                            <div class="my-10"></div>
-                                            <MudText Typo="Typo.body2" Color="Color.Warning" Class="font-weight-bold">
-                                                @item.Price</MudText>
-                                        </MudCardContent>
-                                    </MudCard>
-                                </MudItem>
-                            }
-                        </MudGrid>
-                    </ItemTemplate>
-                </MudVirtualize>
-            </div>
+
+            <MudGrid Class="my-20" Spacing="4">
+                @foreach (var item in FilteredMenuItems)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="4">
+                        <MudCard Elevation="1" @onclick="() => OnMenuClick(item)" Class="card-hover my-card-style">
+                            <MudCardMedia Image="@item.Image" Height="300" Alt="@item.Title"
+                                Style="object-fit: cover; object-position: center;" />
+                            <MudCardContent>
+                                <MudText Typo="Typo.caption" Class="text-grey">@item.Category</MudText>
+                                <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@item.Title</MudText>
+                                <div class="my-10"></div>
+                                <MudText Typo="Typo.body2" Color="Color.Warning" Class="font-weight-bold">@item.Price</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
         }
     </MudContainer>
 </MudContainer>
-
 @code {
     [Parameter]
     public string CategoryName { get; set; }
@@ -77,7 +69,6 @@
     @* PERUBAHAN: Definisi record disamakan dengan Landingpage.razor (Image, Title) *@
     public record Menu(int Id, string Image, string Category, string Title, string Price);
     public List<Menu> FilteredMenuItems = new List<Menu>();
-    public List<List<Menu>> MenuRows = new List<List<Menu>>();
     private bool isLoading = true;
     private CultureInfo idCulture = new CultureInfo("id-ID");
     private string _apiBaseUrl = string.Empty;
@@ -93,7 +84,6 @@
         isLoading = true;
         _apiBaseUrl = (Configuration["ApiBaseUrl"] ?? "http://localhost:5099").TrimEnd('/');
         FilteredMenuItems.Clear();
-        MenuRows.Clear();
         categoryDescription = "";
 
         if (string.IsNullOrEmpty(CategoryName))
@@ -120,9 +110,6 @@
                 ))
                 .ToList();
             }
-
-            // Group into rows of 3 for grid layout
-            MenuRows = FilteredMenuItems.Chunk(3).Select(chunk => chunk.ToList()).ToList();
 
             var categoryResponse = await Http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>("api/categories");
             if (categoryResponse?.Success == true && categoryResponse.Data != null)
@@ -178,8 +165,6 @@
         width: 100%;
         margin: auto;
         height: 100%;
-        border-bottom: 1px solid #ddd;
-        /* Added bottom line */
     }
 
     .hero-wrapper {
@@ -228,19 +213,5 @@
         font-size: 1rem;
         color: #555;
         line-height: 1.6;
-    }
-
-    .image-item {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .menu-start-image {
-        width: 100%;
-        max-width: 600px;
-        height: auto;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 </style>
