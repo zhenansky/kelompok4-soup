@@ -191,7 +191,7 @@
     padding: 1.5rem;
     background-color: #fff;
     border-radius: 12px;
-    height: calc(100vh - 5rem);
+    min-height: calc(100vh - 5rem);
     overflow-y: auto;
   }
 
@@ -206,6 +206,7 @@
     color: white;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    width: 100%;
   }
 
   .stat-header {
@@ -242,7 +243,6 @@
   }
 
   .invoice-table {
-    min-width: 650px;
     border-radius: 10px;
     border: 1px solid #e0e0e0;
   }
@@ -261,23 +261,91 @@
   }
 
   /* ===== RESPONSIVE ===== */
-  @@media (max-width: 768px) {
+  @@media (max-width: 1024px) {
     .dashboard-container {
       padding: 1rem;
+    }
+  }
+
+  @@media (max-width: 768px) {
+    .dashboard-container {
+      padding: 0.75rem;
     }
 
     .welcome-text {
       font-size: 1.25rem;
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .stat-card {
+      width: 100%;
+      margin: 0 auto;
     }
 
     .stat-number {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
     }
 
-    .mud-table th,
-    .mud-table td {
-      font-size: 0.85rem;
+    /* Table stacking style */
+    .invoice-table {
+      min-width: 100%;
+      border: none;
+    }
+
+    .mud-table thead {
+      display: none;
+    }
+
+    .mud-table tr {
+      display: block;
+      background: #fafafa;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       padding: 0.5rem;
+    }
+
+    .mud-table td {
+      display: flex;
+      justify-content: space-between;
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .mud-table td::before {
+      content: attr(datalabel);
+      font-weight: 600;
+      color: #444;
+    }
+
+    .mud-table td:last-child {
+      border-bottom: none;
+    }
+
+    .table-wrapper {
+      overflow-x: visible;
+    }
+  }
+
+  @@media (max-width: 480px) {
+    .welcome-text {
+      font-size: 1.1rem;
+    }
+
+    .stat-number {
+      font-size: 1.1rem;
+    }
+
+    .mud-table td {
+      font-size: 0.8rem;
     }
   }
 </style>
