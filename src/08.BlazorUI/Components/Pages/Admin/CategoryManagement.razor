@@ -237,10 +237,16 @@
     }
 
     .action-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 0.4rem;
+        display: table-cell !important;
+        vertical-align: middle !important;
+        text-align: center;
+        padding: 0.5rem;
     }
+
+    .mud-table-row {
+        vertical-align: middle !important;
+    }
+
 
     /* RESPONSIVE */
     @@media (max-width: 768px) {
