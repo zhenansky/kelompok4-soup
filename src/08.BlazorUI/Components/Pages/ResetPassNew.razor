@@ -161,7 +161,7 @@
       yield return "New password is required!";
       yield break;
     }
-    if (value.Length < 6 || !Regex.IsMatch(value, @"[A-Z]") || !Regex.IsMatch(value, @"[0-9]"))
+    if (value.Length < 6 || !Regex.IsMatch(value, @"[A-Z]", RegexOptions.NonBacktracking, TimeSpan.FromMilliseconds(500)) || !Regex.IsMatch(value, @"[0-9]", RegexOptions.NonBacktracking, TimeSpan.FromMilliseconds(500)))
     {
       yield return "Password must be at least 6 characters, contain at least one uppercase letter and contain at least one number!";
     }

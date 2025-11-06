@@ -1,6 +1,19 @@
 # SonarQube Analysis Script for Windows PowerShell
 # Run this with:  .\sonar-scan.ps1
 
+$envFile = Join-Path $PSScriptRoot ".env"
+
+if (Test-Path $envFile) {
+  Get-Content $envFile | ForEach-Object {
+    if ($_ -match '^\s*([^#][^=]*)=(.*)$') {
+      $name = $matches[1].Trim()
+      $value = $matches[2].Trim()
+      # Set as environment variable
+      [System.Environment]::SetEnvironmentVariable($name, $value) 
+    }
+  }
+}
+
 Write-Host "???? Starting SonarQube Analysis for MyApp..." -ForegroundColor Cyan
 Write-Host "==============================================" -ForegroundColor Cyan
 
@@ -8,7 +21,7 @@ Write-Host "==============================================" -ForegroundColor Cya
 $PROJECT_KEY = "kelompok4-soup"
 $PROJECT_NAME = "kelompok4-soup"
 $SONAR_HOST = "http://localhost:9000"
-$SONAR_TOKEN = "sqa_238883e03d389ef23f732f7b56e0a6210b63505e"
+$SONAR_TOKEN = $env:SONAR_TOKEN
 
 # Check if SonarQube is running
 Write-Host ""
