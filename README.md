@@ -66,7 +66,7 @@ dotnet build
 dotnet run
 ```
 
-➡️ Akses di: `https://localhost:7001` atau `http://localhost:7000`
+➡️ Akses di: `http://localhost:5124` atau `http://localhost:5099/swagger/index.html`
 
 ---
 
