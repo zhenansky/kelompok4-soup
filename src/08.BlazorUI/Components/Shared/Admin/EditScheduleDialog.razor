@@ -12,8 +12,8 @@
         <MudForm @ref="form" @bind-IsValid="_isValid">
             <MudPaper Elevation="0" Class="d-flex flex-column gap-4">
 
-                <MudDatePicker Label="Schedule Date" Date="_selectedDate" DateChanged="OnDateChanged" Required="true"
-                    RequiredError="Tanggal wajib diisi" />
+               <MudDatePicker Label="Schedule Date" @bind-Date="_selectedDate"
+               Required="true" RequiredError="Tanggal wajib diisi" />
 
                 <MudTimePicker Label="Schedule Time" @bind-Time="_selectedTime" AmPm="false" MinuteInterval="5"
                     Required="true" RequiredError="Jam wajib diisi" />
