@@ -1,0 +1,21 @@
+@page "/404"
+@layout MainLayout
+@using MudBlazor
+@using Microsoft.AspNetCore.Components
+@using MyApp.BlazorUI.Components.Layout @* pastikan ini sesuai dengan folder MainLayout kamu *@
+
+<MudContainer MaxWidth="MaxWidth.False" Class="d-flex flex-column justify-center align-center" Style="height:100vh;">
+  <MudText Typo="Typo.h2" Class="text-center mb-3">404 - Halaman Tidak Ditemukan</MudText>
+  <MudText Typo="Typo.subtitle1" Class="text-center mb-6">
+    Halaman yang Anda cari tidak tersedia atau sudah dipindahkan.
+  </MudText>
+  <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@GoHome">
+    Kembali ke Beranda
+  </MudButton>
+</MudContainer>
+
+@code {
+  [Inject] NavigationManager Navigation { get; set; } = default!;
+
+  void GoHome() => Navigation.NavigateTo("/");
+}
