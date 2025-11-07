@@ -64,6 +64,12 @@
         </MudText>
       </MudDrawerHeader>
 
+      <MudButton FullWidth="true" Variant="Variant.Text" Color="Color.Inherit" OnClick="GoHome" Class="nav-btn"
+        Style="color:#222; text-transform:none; justify-content:flex-start;">
+        <MudIcon Icon="@Icons.Material.Filled.Home" Style="color:#222; margin-right:8px;" />
+        <MudText Class="nav-text" Style="color:#222;">Homepage</MudText>
+      </MudButton>
+
       <MudButton FullWidth="true" Variant="Variant.Text" Color="Color.Inherit" OnClick="Logout" Class="nav-btn"
         Style="color:#222; text-transform:none; justify-content:flex-start;">
         <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Style="color:#222; margin-right:8px;" />
@@ -133,6 +139,11 @@
       }
     }
   };
+
+  private void GoHome()
+  {
+    NavigationManager.NavigateTo("/", forceLoad: true);
+  }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {

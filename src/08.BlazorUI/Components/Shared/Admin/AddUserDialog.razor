@@ -101,7 +101,8 @@
   {
     if (string.IsNullOrWhiteSpace(value))
       return "Email is required!";
-    if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+    if (!System.Text.RegularExpressions.Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.NonBacktracking,
+    TimeSpan.FromMilliseconds(500)))
       return "Invalid email format!";
     return string.Empty;
   }
@@ -113,7 +114,8 @@
       yield return "Password is required!";
       yield break;
     }
-    if (value.Length < 6 || !Regex.IsMatch(value, @"[A-Z]") || !Regex.IsMatch(value, @"[0-9]"))
+    if (value.Length < 6 || !Regex.IsMatch(value, @"[A-Z]", RegexOptions.NonBacktracking, TimeSpan.FromMilliseconds(500)) ||
+    !Regex.IsMatch(value, @"[0-9]", RegexOptions.NonBacktracking, TimeSpan.FromMilliseconds(500)))
     {
       yield return "Password must be at least 6 characters, contain one uppercase letter and one number!";
     }

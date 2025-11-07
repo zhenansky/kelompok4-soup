@@ -118,7 +118,7 @@
       return "Email is required.";
     }
     else if (!System.Text.RegularExpressions.Regex.IsMatch(value,
-    @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+    @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.NonBacktracking, TimeSpan.FromMilliseconds(500)))
     {
       return "Invalid email format.";
     }
